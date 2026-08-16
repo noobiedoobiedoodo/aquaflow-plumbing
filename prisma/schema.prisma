@@ -1,0 +1,1163 @@
+// ============================================================================
+// PLUMBING PLATFORM — DATABASE SCHEMA
+// ============================================================================
+// Multi-tenant architecture: every business entity scoped to Organization.
+// SQLite for local development. Switch datasource to PostgreSQL for production.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// ORGANIZATION / TENANT
+// ============================================================================
+
+model Organization {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  domain         String?  @unique
+  phone          String?
+  emergencyPhone String?
+  email          String?
+  address        String?
+  city           String?
+  province       String?
+  postalCode     String?
+  country        String   @default("CA")
+  logoUrl        String?
+  timezone       String   @default("America/Winnipeg")
+  taxRate        Float    @default(0.05)
+  currency       String   @default("CAD")
+  isActive       Boolean  @default(true)
+  autoInvoiceOnCompletion Boolean @default(false)
+  
+  // Commercialization & Stripe
+  onboardingStatus        String   @default("SIGNUP") // SIGNUP, STRIPE_SUBSCRIPTION_PENDING, SUBSCRIPTION_ACTIVE, STRIPE_CONNECT_PENDING, STRIPE_CONNECTED, ONBOARDING_COMPLETE
+  stripeCustomerId        String?  // For SaaS Subscription
+  stripeSubscriptionId    String?  // For SaaS Subscription
+  subscriptionStatus      String?  // TRIALING, ACTIVE, PAST_DUE, UNPAID, CANCELED, INCOMPLETE
+  stripeAccountId         String?  // Connected Stripe Account ID (Standard Connect)
+  stripeConnectionStatus  String?  // PENDING, ACTIVE, RESTRICTED
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members               OrganizationMember[]
+  services              Service[]
+  serviceAreas          ServiceArea[]
+  businessHours         BusinessHours[]
+  holidays              Holiday[]
+  customers             Customer[]
+  technicians           Technician[]
+  properties            Property[]
+  appointments          Appointment[]
+  jobs                  Job[]
+  estimates             Estimate[]
+  invoices              Invoice[]
+  taxRules              TaxRule[]
+  reviews               Review[]
+  leads                 Lead[]
+  notifications         Notification[]
+  notificationTemplates NotificationTemplate[]
+  auditLogs             AuditLog[]
+  events                Event[]
+  automationRules       AutomationRule[]
+  intelligenceRecommendations IntelligenceRecommendation[]
+  tasks                 Task[]
+  supportTickets        SupportTicket[]
+  assignmentOverrides   AssignmentOverride[]
+  operationalForecasts  OperationalForecast[]
+  optimizationProposals OptimizationProposal[]
+}
+
+// ============================================================================
+// USER & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  avatarUrl     String?
+  emailVerified Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  memberships             OrganizationMember[]
+  sessions                Session[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  customers               Customer[]
+  technician              Technician?
+  jobNotes                JobNote[]
+  jobActivities           JobActivity[]
+  notifications           Notification[]
+  auditLogs               AuditLog[]
+  jobPhotos               JobPhoto[]
+  jobParts                JobPart[]
+  jobTimeEntries          JobTimeEntry[]
+  financialActivities     FinancialActivity[]
+  magicLinks              MagicLinkToken[]
+  assignedTasks           Task[]
+  assignmentOverrides     AssignmentOverride[]
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           String   @default("CUSTOMER") // SUPER_ADMIN, ADMIN, DISPATCHER, TECHNICIAN, CUSTOMER
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+// ============================================================================
+// CUSTOMER
+// ============================================================================
+
+model Customer {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  firstName      String
+  lastName       String
+  phone          String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user                     User                             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization             Organization                     @relation(fields: [organizationId], references: [id])
+  properties               Property[]
+  appointments             Appointment[]
+  estimates                Estimate[]
+  invoices                 Invoice[]
+  reviews                  Review[]
+  communicationPreferences CustomerCommunicationPreference?
+  emailVerifiedAt          DateTime?
+  customerActivities       CustomerActivity[]
+  customerSessions         CustomerSession[]
+  estimateApprovals        EstimateApproval[]
+  tasks                    Task[]
+  supportTickets           SupportTicket[]
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model MagicLinkToken {
+  id             String    @id @default(uuid())
+  tokenHash      String    @unique
+  userId         String
+  organizationId String?
+  customerId     String?
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model CustomerSession {
+  id         String    @id @default(uuid())
+  customerId String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+model CustomerActivity {
+  id         String   @id @default(uuid())
+  customerId String
+  action     String // CUSTOMER_LOGIN, ESTIMATE_VIEWED, ESTIMATE_APPROVED, ESTIMATE_REJECTED, etc.
+  metadata   String? // JSON metadata
+  createdAt  DateTime @default(now())
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+// ============================================================================
+// TECHNICIAN & SCHEDULING
+// ============================================================================
+
+model Technician {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  organizationId     String
+  firstName          String
+  lastName           String
+  phone              String?
+  skills             String? // JSON array of service slugs
+  isActive           Boolean  @default(true)
+  availabilityStatus String   @default("AVAILABLE") // AVAILABLE, BUSY, OFF_DUTY
+  currentLat         Float?
+  currentLng         Float?
+  locationUpdatedAt  DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user                   User                              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization           Organization                      @relation(fields: [organizationId], references: [id])
+  schedules              TechnicianSchedule[]
+  availabilityExceptions TechnicianAvailabilityException[]
+  appointments           Appointment[]
+  jobs                   Job[]
+  jobAssignments         JobAssignment[]
+  intelligenceRecommendations IntelligenceRecommendation[]
+  assignmentOverrides    AssignmentOverride[]
+  operationalForecasts   OperationalForecast[]
+
+  optimizationProposalsAsOriginal OptimizationProposal[] @relation("OriginalTech")
+  optimizationProposalsAsProposed OptimizationProposal[] @relation("ProposedTech")
+
+  @@index([organizationId])
+}
+
+model TechnicianSchedule {
+  id           String  @id @default(uuid())
+  technicianId String
+  dayOfWeek    Int // 0=Sunday, 6=Saturday
+  startTime    String // "08:00" (HH:mm)
+  endTime      String // "17:00" (HH:mm)
+  isActive     Boolean @default(true)
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@unique([technicianId, dayOfWeek])
+}
+
+model TechnicianAvailabilityException {
+  id           String   @id @default(uuid())
+  technicianId String
+  date         DateTime
+  startTime    String? // null = entire day blocked
+  endTime      String?
+  type         String   @default("BLOCKED") // VACATION, SICK, PERSONAL, TRAINING, BLOCKED, OTHER
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId, date])
+}
+
+// ============================================================================
+// PROPERTY
+// ============================================================================
+
+model Property {
+  id             String   @id @default(uuid())
+  customerId     String
+  organizationId String
+  address        String
+  unit           String?
+  city           String
+  province       String   @default("MB")
+  postalCode     String
+  country        String   @default("CA")
+  notes          String?
+  latitude       Float?
+  longitude      Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  appointments Appointment[]
+
+  @@index([customerId])
+  @@index([organizationId])
+}
+
+// ============================================================================
+// SERVICE
+// ============================================================================
+
+model Service {
+  id                String   @id @default(uuid())
+  organizationId    String
+  name              String
+  slug              String
+  description       String?
+  shortDescription  String?
+  category          String?
+  estimatedDuration Int      @default(60) // minutes
+  basePrice         Float?
+  icon              String? // Lucide icon name
+  isEmergency       Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  seoTitle          String?
+  seoDescription    String?
+  faqJson           String? // JSON array of {question, answer}
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  appointments Appointment[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, isActive])
+}
+
+// ============================================================================
+// SERVICE AREA
+// ============================================================================
+
+model ServiceArea {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+  seoTitle       String?
+  seoDescription String?
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, slug])
+}
+
+// ============================================================================
+// BUSINESS HOURS & HOLIDAYS
+// ============================================================================
+
+model BusinessHours {
+  id             String  @id @default(uuid())
+  organizationId String
+  dayOfWeek      Int // 0=Sunday, 6=Saturday
+  openTime       String // "08:00"
+  closeTime      String // "17:00"
+  isClosed       Boolean @default(false)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, dayOfWeek])
+}
+
+model Holiday {
+  id             String   @id @default(uuid())
+  organizationId String
+  date           DateTime
+  name           String
+  isRecurring    Boolean  @default(false)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, date])
+}
+
+// ============================================================================
+// APPOINTMENT
+// ============================================================================
+
+model Appointment {
+  id                 String    @id @default(uuid())
+  appointmentNumber  String    @unique // PL-2026-000184
+  organizationId     String
+  customerId         String
+  propertyId         String
+  serviceId          String
+  technicianId       String?
+  date               DateTime
+  startTime          String // "09:00"
+  endTime            String // "10:00"
+  status             String    @default("PENDING") // PENDING, CONFIRMED, SCHEDULED, EN_ROUTE, ARRIVED, DIAGNOSING, WORKING, COMPLETED, CANCELLED, NO_SHOW
+  priority           String    @default("NORMAL") // LOW, NORMAL, HIGH, EMERGENCY
+  isEmergency        Boolean   @default(false)
+  problemDescription String?
+  customerNotes      String?
+  internalNotes      String?
+  cancelledAt        DateTime?
+  cancelledBy        String?
+  cancellationReason String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  property     Property     @relation(fields: [propertyId], references: [id])
+  service      Service      @relation(fields: [serviceId], references: [id])
+  technician   Technician?  @relation(fields: [technicianId], references: [id])
+  job          Job?
+
+  @@index([organizationId, date])
+  @@index([organizationId, status])
+  @@index([customerId])
+  @@index([technicianId])
+  @@index([appointmentNumber])
+}
+
+// ============================================================================
+// JOB
+// ============================================================================
+
+model Job {
+  id             String    @id @default(uuid())
+  appointmentId  String    @unique
+  organizationId String
+  technicianId   String?
+  status         String    @default("CREATED") // CREATED, ASSIGNED, EN_ROUTE, ARRIVED, DIAGNOSING, WORKING, COMPLETED, CANCELLED
+  startedAt      DateTime?
+  completedAt    DateTime?
+  diagnosis      String?
+  workPerformed  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  appointment  Appointment        @relation(fields: [appointmentId], references: [id])
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  technician   Technician?        @relation(fields: [technicianId], references: [id])
+  notes        JobNote[]
+  photos       JobPhoto[]
+  parts        JobPart[]
+  timeEntries  JobTimeEntry[]
+  signature    CustomerSignature?
+  assignments  JobAssignment[]
+  estimates    Estimate[]
+  invoices     Invoice[]
+  activities   JobActivity[]
+  intelligenceRecommendations IntelligenceRecommendation[]
+  tasks        Task[]
+  supportTickets SupportTicket[]
+  assignmentOverrides AssignmentOverride[]
+  operationalForecasts OperationalForecast[]
+  optimizationProposals OptimizationProposal[]
+
+  @@index([organizationId, status])
+  @@index([technicianId])
+}
+
+model JobAssignment {
+  id           String    @id @default(uuid())
+  jobId        String
+  technicianId String
+  assignedById String
+  assignedAt   DateTime  @default(now())
+  unassignedAt DateTime?
+  reason       String?
+
+  job        Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician Technician @relation(fields: [technicianId], references: [id])
+
+  @@index([jobId])
+  @@index([technicianId])
+}
+
+model JobNote {
+  id        String   @id @default(uuid())
+  jobId     String
+  authorId  String
+  type      String   @default("INTERNAL") // DISPATCHER, TECHNICIAN, INTERNAL, CUSTOMER_VISIBLE
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([jobId])
+}
+
+model JobPhoto {
+  id           String   @id @default(uuid())
+  jobId        String
+  uploadedById String
+  type         String   @default("OTHER") // BEFORE, AFTER, DIAGNOSTIC, OTHER
+  storageKey      String
+  url             String
+  caption         String?
+  customerVisible Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  job      Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  uploader User @relation(fields: [uploadedById], references: [id])
+
+  @@index([jobId])
+}
+
+model JobPart {
+  id          String   @id @default(uuid())
+  jobId       String
+  name        String
+  quantity    Int      @default(1)
+  unitCost    Float
+  createdById String
+  createdAt   DateTime @default(now())
+
+  job       Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([jobId])
+}
+
+model JobTimeEntry {
+  id              String    @id @default(uuid())
+  jobId           String
+  technicianId    String
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+  createdAt       DateTime  @default(now())
+
+  job        Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician User @relation(fields: [technicianId], references: [id])
+
+  @@index([jobId])
+}
+
+model CustomerSignature {
+  id         String   @id @default(uuid())
+  jobId      String   @unique
+  signerName String
+  storageKey String // Points to the private file storage
+  createdAt  DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// FINANCE & BILLING
+// ============================================================================
+
+model Estimate {
+  id             String    @id @default(uuid())
+  estimateNumber String    @unique // EST-YYYY-XXXXXX
+  organizationId String
+  jobId          String    @unique
+  customerId     String
+  status         String    @default("DRAFT") // DRAFT, SENT, APPROVED, REJECTED
+  subtotal       Float     @default(0)
+  tax            Float     @default(0)
+  total          Float     @default(0)
+  expiresAt      DateTime?
+  revision       Int       @default(1)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  job          Job            @relation(fields: [jobId], references: [id])
+  customer     Customer       @relation(fields: [customerId], references: [id])
+  lines        EstimateLine[]
+  approvals    EstimateApproval[]
+
+  @@index([organizationId, status])
+  @@index([customerId])
+}
+
+model EstimateApproval {
+  id          String   @id @default(uuid())
+  estimateId  String
+  customerId  String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customerId], references: [id])
+
+  @@index([estimateId])
+  @@index([customerId])
+}
+
+model EstimateLine {
+  id          String @id @default(uuid())
+  estimateId  String
+  description String
+  quantity    Float  @default(1)
+  unitCost    Float  @default(0)
+
+  estimate Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+
+  @@index([estimateId])
+}
+
+model Invoice {
+  id             String    @id @default(uuid())
+  invoiceNumber  String    @unique // INV-YYYY-XXXXXX
+  organizationId String
+  jobId          String    @unique
+  customerId     String
+  paymentToken   String    @unique @default(uuid()) // Secure public URL token
+  status         String    @default("DRAFT") // DRAFT, SENT, PARTIALLY_PAID, PAID, OVERDUE, VOID
+  subtotal       Float     @default(0)
+  taxTotal       Float     @default(0)
+  total          Float     @default(0)
+  amountPaid     Float     @default(0)
+  dueDate        DateTime?
+  issuedAt       DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  job          Job                 @relation(fields: [jobId], references: [id])
+  customer     Customer            @relation(fields: [customerId], references: [id])
+  lines        InvoiceLine[]
+  taxes        InvoiceTax[]
+  payments     Payment[]
+  activities   FinancialActivity[]
+  supportTickets SupportTicket[]
+
+  @@index([organizationId, status])
+  @@index([paymentToken])
+  @@index([customerId])
+}
+
+model InvoiceLine {
+  id          String @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Float  @default(1)
+  unitCost    Float  @default(0)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model InvoiceTax {
+  id           String @id @default(uuid())
+  invoiceId    String
+  name         String
+  jurisdiction String
+  rate         Float
+  amount       Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model TaxRule {
+  id             String   @id @default(uuid())
+  organizationId String
+  jurisdiction   String
+  name           String
+  rate           Float // e.g., 0.05 for 5%
+  appliesTo      String // e.g., 'ALL', 'LABOR', 'MATERIALS'
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model Payment {
+  id                String    @id @default(uuid())
+  invoiceId         String
+  type              String    @default("CHARGE") // CHARGE, REFUND
+  amount            Float
+  currency          String    @default("cad")
+  status            String    @default("PENDING") // PENDING, SUCCEEDED, FAILED
+  provider          String // e.g. "stripe"
+  providerPaymentId String    @unique // Provider's unique ID, e.g. PaymentIntent ID
+  idempotencyKey    String    @unique
+  failureCode       String?
+  failureMessage    String?
+  paidAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([status])
+  @@index([providerPaymentId])
+  @@index([invoiceId])
+}
+
+model FinancialActivity {
+  id        String   @id @default(uuid())
+  invoiceId String
+  paymentId String?
+  actorId   String? // null if system/webhook
+  event     String // INVOICE_CREATED, PAYMENT_SUCCEEDED, etc.
+  metadata  String? // JSON string
+  createdAt DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id])
+
+  @@index([invoiceId])
+  @@index([actorId])
+}
+
+// ============================================================================
+// REVIEW
+// ============================================================================
+
+model Review {
+  id             String   @id @default(uuid())
+  organizationId String
+  customerId     String?
+  customerName   String
+  rating         Int // 1-5
+  content        String?
+  isPublished    Boolean  @default(false)
+  isFeatured     Boolean  @default(false)
+  source         String   @default("direct") // direct, google, yelp, etc.
+  externalId     String? // ID from external review source
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  customer     Customer?    @relation(fields: [customerId], references: [id])
+
+  @@index([organizationId, isPublished])
+}
+
+// ============================================================================
+// LEAD
+// ============================================================================
+
+model Lead {
+  id              String   @id @default(uuid())
+  organizationId  String
+  source          String   @default("WEBSITE") // HEALTH_CHECK, WEBSITE, PHONE, REFERRAL, AI_INTAKE, OTHER
+  name            String?
+  email           String?
+  phone           String?
+  healthScore     Int?
+  notes           String?
+  serviceInterest String?
+  aiExtractedData String? // JSON: AI-parsed intake data
+  isConverted     Boolean  @default(false)
+  convertedToId   String? // appointmentId if converted
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, isConverted])
+}
+
+// ============================================================================
+// NOTIFICATION
+// ============================================================================
+
+model Notification {
+  id             String    @id @default(uuid())
+  organizationId String
+  userId         String?
+  idempotencyKey String    @unique
+  type           String // BOOKING_CONFIRMATION, APPOINTMENT_REMINDER, TECHNICIAN_DISPATCHED, etc.
+  channel        String // EMAIL, SMS, PUSH, IN_APP
+  status         String    @default("PENDING") // PENDING, PROCESSING, SENT, DELIVERED, BOUNCED, FAILED
+  subject        String?
+  content        String
+  metadata       String? // JSON
+  providerId     String? // e.g. Resend ID, Twilio SID
+  attempts       Int       @default(0)
+  scheduledFor   DateTime?
+  sentAt         DateTime?
+  failedAt       DateTime?
+  failureReason  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+  @@index([organizationId, status])
+  @@index([scheduledFor])
+}
+
+// ============================================================================
+// AUDIT LOG
+// ============================================================================
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  organizationId String?
+  userId         String?
+  action         String // e.g. "quote.approved", "appointment.created", "job.status_changed"
+  entity         String // e.g. "Quote", "Appointment", "Job"
+  entityId       String
+  metadata       String? // JSON: before/after values, context
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  user         User?         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, entity])
+  @@index([entityId])
+}
+
+// ============================================================================
+// EVENT (for real-time updates / event sourcing)
+// ============================================================================
+
+model Event {
+  id             String    @id @default(uuid())
+  organizationId String
+  type           String // e.g. "job.completed", "invoice.generated", "payment.succeeded"
+  entityType     String // e.g. "Job", "Invoice"
+  entityId       String
+  data           String // JSON payload
+  status         String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED, DEAD_LETTER
+  attempts       Int       @default(0)
+  processedAt    DateTime?
+  failedAt       DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+
+  organization          Organization @relation(fields: [organizationId], references: [id])
+  automationExecutions  AutomationExecution[]
+
+  @@index([organizationId, status])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+model JobActivity {
+  id             String   @id @default(uuid())
+  jobId          String
+  userId         String? // User who performed the action (Admin, Dispatcher)
+  action         String // e.g., 'JOB_CREATED', 'TECHNICIAN_ASSIGNED', 'STATUS_CHANGED'
+  previousStatus String?
+  newStatus      String?
+  metadata       String? // JSON string for additional context
+  createdAt      DateTime @default(now())
+
+  job  Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([jobId])
+  @@index([userId])
+}
+
+// ============================================================================
+// COMMUNICATIONS & EVENT OUTBOX
+// ============================================================================
+
+model StripeWebhookEvent {
+  id            String   @id @default(uuid())
+  stripeEventId String   @unique
+  type          String
+  processedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([type])
+}
+
+model CustomerCommunicationPreference {
+  id                   String   @id @default(uuid())
+  customerId           String   @unique
+  emailEnabled         Boolean  @default(true)
+  smsEnabled           Boolean  @default(true)
+  appointmentReminders Boolean  @default(true)
+  jobUpdates           Boolean  @default(true)
+  invoiceNotifications Boolean  @default(true)
+  paymentReceipts      Boolean  @default(true)
+  marketingEnabled     Boolean  @default(false)
+  updatedAt            DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model NotificationTemplate {
+  id             String   @id @default(uuid())
+  organizationId String
+  type           String // e.g. "job.completed", "invoice.generated"
+  channel        String // "EMAIL", "SMS"
+  subject        String?
+  body           String
+  variables      String   @default("[]") // JSON array of required variables
+  version        Int      @default(1)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, type, channel])
+}
+
+model AutomationRule {
+  id             String   @id @default(uuid())
+  name           String
+  eventType      String
+  enabled        Boolean  @default(true)
+  priority       Int      @default(0)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  executions     AutomationExecution[]
+
+  @@index([organizationId, eventType])
+}
+
+model AutomationExecution {
+  id             String   @id @default(uuid())
+  ruleId         String
+  eventId        String
+  status         String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  idempotencyKey String   @unique
+  startedAt      DateTime?
+  completedAt    DateTime?
+  error          String?
+  attempts       Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  rule           AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  event          Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, eventId])
+  @@index([eventId])
+}
+
+model IntelligenceRecommendation {
+  id             String   @id @default(uuid())
+  organizationId String
+  jobId          String
+  technicianId   String
+  
+  score             Float
+  distanceScore     Float
+  availabilityScore Float
+  skillScore        Float
+  workloadScore     Float
+  
+  distanceKm         Float?
+  availabilityStatus String
+  skillMatch         String
+  workloadLevel      String
+  
+  reasoningJson      String // JSON
+  status             String @default("SUGGESTED") // SUGGESTED, ACCEPTED, REJECTED, EXPIRED
+  scoringVersion     String @default("v1.0")
+  feedbackReason     String?
+  
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  job            Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician     Technician   @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, status])
+}
+
+// ============================================================================
+// INTERNAL TASKS & SUPPORT TICKETS (PHASE 11)
+// ============================================================================
+
+model Task {
+  id             String    @id @default(uuid())
+  organizationId String
+  title          String
+  type           String    // SCHEDULING_REQUIRED, CALL_CUSTOMER, PAYMENT_FOLLOWUP, INVESTIGATE
+  status         String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, DISMISSED
+  priority       String    @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  assignedToId   String?   // User (Dispatcher) ID
+  relatedJobId   String?
+  relatedCustId  String?
+  metadata       String?   // JSON
+  dueDate        DateTime?
+  createdByType  String    @default("SYSTEM") // AUTOMATION, DISPATCHER, SYSTEM
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  job            Job?         @relation(fields: [relatedJobId], references: [id])
+  customer       Customer?    @relation(fields: [relatedCustId], references: [id])
+  assignedTo     User?        @relation(fields: [assignedToId], references: [id])
+
+  @@index([organizationId, status])
+  @@index([assignedToId])
+}
+
+model SupportTicket {
+  id             String    @id @default(uuid())
+  organizationId String
+  customerId     String
+  subject        String
+  status         String    @default("OPEN") // OPEN, IN_PROGRESS, WAITING_CUSTOMER, RESOLVED, CLOSED
+  relatedJobId   String?
+  relatedInvId   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  customer       Customer     @relation(fields: [customerId], references: [id])
+  job            Job?         @relation(fields: [relatedJobId], references: [id])
+  invoice        Invoice?     @relation(fields: [relatedInvId], references: [id])
+  messages       SupportTicketMessage[]
+
+  @@index([organizationId, status])
+  @@index([customerId])
+}
+
+model SupportTicketMessage {
+  id           String    @id @default(uuid())
+  ticketId     String
+  senderType   String    // CUSTOMER, DISPATCHER, SYSTEM
+  senderId     String?   // Nullable for SYSTEM
+  body         String
+  createdAt    DateTime  @default(now())
+
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model AssignmentOverride {
+  id             String    @id @default(uuid())
+  organizationId String
+  jobId          String
+  technicianId   String
+  userId         String    // The dispatcher who overrode it
+  reason         String
+  conflicts      String    // JSON representation of soft conflicts that were overridden
+  createdAt      DateTime  @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  job            Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician     Technician   @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+  
+  @@index([organizationId])
+  @@index([jobId])
+}
+
+// ============================================================================
+// PREDICTIVE INTELLIGENCE
+// ============================================================================
+
+model OperationalForecast {
+  id                    String   @id @default(uuid())
+  organizationId        String
+  jobId                 String
+  technicianId          String
+  predictedCompletionAt DateTime
+  lateProbability       Float
+  confidence            String   // "HIGH", "MEDIUM", "LOW"
+  sampleSize            Int
+  routingProvider       String
+  modelVersion          String   // e.g., "forecast-v1"
+  reasoningJson         String   // Structured JSON matching specific schema
+  featureSnapshot       String?  // Immutable snapshot of feature state at prediction time
+  createdAt             DateTime @default(now())
+  expiresAt             DateTime // Enforces short TTL to protect against stale data
+
+  // Accuracy Tracking fields (populated post-completion)
+  actualCompletionAt     DateTime?
+  predictionErrorSeconds Int?
+  actualLate             Boolean?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician   Technician   @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([jobId])
+  @@index([technicianId])
+}
+
+model OptimizationProposal {
+  id                    String   @id @default(uuid())
+  organizationId        String
+  jobId                 String
+  originalTechnicianId  String
+  proposedTechnicianId  String
+  
+  reason                String
+  reasoningJson         String?  // Snapshotted context of why the proposal was made
+  predictedDelayBefore  Int      // Minutes
+  predictedDelayAfter   Int      // Minutes
+  
+  status                String   // "PENDING", "ACCEPTED", "REJECTED", "EXPIRED"
+  createdAt             DateTime @default(now())
+  resolvedAt            DateTime?
+
+  // Post-hoc Evaluation
+  actualDelayBefore      Int?     // If rejected/expired, what actually happened?
+  observedDelayReduction Int?     // If accepted, what was the observed difference?
+
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job                 Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  originalTechnician  Technician   @relation("OriginalTech", fields: [originalTechnicianId], references: [id], onDelete: Cascade)
+  proposedTechnician  Technician   @relation("ProposedTech", fields: [proposedTechnicianId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([jobId])
+}
