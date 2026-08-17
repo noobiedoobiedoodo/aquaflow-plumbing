@@ -26,7 +26,9 @@ export async function POST(req: Request) {
         paramsObject[key] = value;
       });
 
-      const url = `${NEXT_PUBLIC_BASE_URL}/api/webhooks/twilio`;
+      const { getServerBaseUrl } = await import('@/lib/config/url');
+      const baseUrl = await getServerBaseUrl();
+      const url = `${baseUrl}/api/webhooks/twilio`;
 
       const isValid = twilio.validateRequest(TWILIO_AUTH_TOKEN, twilioSignature, url, paramsObject);
 

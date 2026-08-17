@@ -174,7 +174,8 @@ export async function sendCustomerPortalInvitation(customerId: string) {
       },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const { getServerBaseUrl } = await import('@/lib/config/url');
+    const baseUrl = await getServerBaseUrl();
     const magicLinkUrl = `${baseUrl}/auth/verify?token=${rawToken}`;
 
     // Create Notification record for email dispatch

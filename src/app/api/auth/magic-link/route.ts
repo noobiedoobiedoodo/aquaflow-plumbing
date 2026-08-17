@@ -55,7 +55,8 @@ export async function POST(req: Request) {
     }
 
     // Generate Single-Tenant Bound Tokens for each matching customer organization
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const { getServerBaseUrl } = await import('@/lib/config/url');
+    const baseUrl = await getServerBaseUrl();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min expiry
 
     for (const customer of targetCustomers) {

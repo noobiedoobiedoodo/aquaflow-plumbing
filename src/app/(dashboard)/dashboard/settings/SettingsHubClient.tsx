@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { createServiceManual, toggleServiceStatus, updateCompanyProfile, createStaffMemberManual } from '@/app/actions/settings';
 import { toast } from 'sonner';
 
+import { getBaseUrl } from '@/lib/config/url';
+
 export function SettingsHubClient({
   org,
   services,
@@ -24,7 +26,7 @@ export function SettingsHubClient({
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://aquaflow-plumbing-theta.vercel.app';
+  const baseUrl = getBaseUrl();
   const bookingUrl = `${baseUrl}/p/${org.slug}/book`;
   const landingUrl = `${baseUrl}/p/${org.slug}`;
   const portalUrl = `${baseUrl}/p/${org.slug}/login`;

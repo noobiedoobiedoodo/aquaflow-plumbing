@@ -46,8 +46,8 @@ export async function POST(req: Request) {
       ],
       client_reference_id: org.id, // Links the session back to our Organization
       customer_email: org.email || user.email,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
+      success_url: `${await (await import('@/lib/config/url')).getServerBaseUrl()}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${await (await import('@/lib/config/url')).getServerBaseUrl()}/onboarding`,
     });
 
     // We can't use redirect() inside an API route easily depending on the client,

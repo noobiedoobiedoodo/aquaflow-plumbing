@@ -29,8 +29,8 @@ const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_ENDPOINT: z.string().optional(),
-  NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_BASE_URL: z.string().optional().default('http://localhost:3000'),
+  NEXT_PUBLIC_APP_URL: z.string().optional(),
+  NEXT_PUBLIC_BASE_URL: z.string().optional(),
   NEXT_PUBLIC_APP_NAME: z.string().optional().default('AquaFlow Plumbing'),
 });
 
