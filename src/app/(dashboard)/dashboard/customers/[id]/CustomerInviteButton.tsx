@@ -35,9 +35,9 @@ export function CustomerInviteButton({ customerId, customerEmail }: { customerId
       {invitationUrl ? (
         <Button
           onClick={copyInviteLink}
-          variant="outline"
+          variant="secondary"
           size="sm"
-          className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1.5"
+          className="border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1.5"
         >
           <Copy className="w-3.5 h-3.5" /> Copy Portal Link
         </Button>
