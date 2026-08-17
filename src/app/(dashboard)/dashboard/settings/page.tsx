@@ -7,7 +7,7 @@ import { SettingsHubClient } from './SettingsHubClient';
 export default async function SettingsPage() {
   const { organizationId } = await requireRoleInOrg(ADMIN_ROLES);
 
-  const [org, services, taxRules, businessHours] = await Promise.all([
+  const [org, services, taxRules, businessHours, members] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: organizationId },
     }),
@@ -23,6 +23,11 @@ export default async function SettingsPage() {
       where: { organizationId },
       orderBy: { id: 'asc' },
     }),
+    prisma.organizationMember.findMany({
+      where: { organizationId },
+      include: { user: true },
+      orderBy: { role: 'asc' },
+    }),
   ]);
 
   if (!org) notFound();
@@ -33,6 +38,7 @@ export default async function SettingsPage() {
       services={services}
       taxRules={taxRules}
       businessHours={businessHours}
+      members={members}
     />
   );
 }

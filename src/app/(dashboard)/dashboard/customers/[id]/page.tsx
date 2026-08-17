@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { ArrowLeft, User, Phone, Mail, MapPin, Calendar, Receipt, Wrench, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+import { CustomerInviteButton } from './CustomerInviteButton';
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -59,6 +61,7 @@ export default async function CustomerDetailPage({ params }: Props) {
             </h1>
             <p className="text-sm text-muted-text mt-1">Customer Record ID: #{customer.id.slice(-6)}</p>
           </div>
+          <CustomerInviteButton customerId={customer.id} customerEmail={customer.user.email} />
         </div>
       </div>
 

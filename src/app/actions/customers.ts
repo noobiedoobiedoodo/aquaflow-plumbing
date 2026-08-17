@@ -139,3 +139,73 @@ export async function createCustomerManually(formData: FormData) {
     return { success: false, error: error.message || 'Failed to create customer' };
   }
 }
+
+export async function sendCustomerPortalInvitation(customerId: string) {
+  try {
+    const { organizationId } = await requireRoleInOrg(ADMIN_ROLES);
+
+    const customer = await prisma.customer.findFirst({
+      where: { id: customerId, organizationId },
+      include: {
+        user: true,
+        organization: true,
+      },
+    });
+
+    if (!customer) {
+      return { success: false, error: 'Customer not found in this organization' };
+    }
+
+    const { randomBytes } = await import('crypto');
+    const { hashToken } = await import('@/lib/auth/customer-session');
+
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min expiry
+
+    // Create single-tenant bound magic link token
+    await prisma.magicLinkToken.create({
+      data: {
+        userId: customer.userId,
+        organizationId: customer.organizationId,
+        customerId: customer.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const magicLinkUrl = `${baseUrl}/auth/verify?token=${rawToken}`;
+
+    // Create Notification record for email dispatch
+    await prisma.notification.create({
+      data: {
+        organizationId: customer.organizationId,
+        idempotencyKey: `invite:${tokenHash}`,
+        userId: customer.userId,
+        type: 'MAGIC_LINK',
+        channel: 'EMAIL',
+        status: 'PENDING',
+        subject: `Your ${customer.organization.name} Portal Invitation`,
+        content: `Hi ${customer.firstName || 'Customer'},\n\nYou have been invited to access your customer portal for ${customer.organization.name}. Use this secure link to view your appointments, jobs, and invoices:\n\n${magicLinkUrl}\n\nThis link is active for 15 minutes.`,
+        metadata: JSON.stringify({
+          email: customer.user.email,
+          organizationId: customer.organizationId,
+          customerId: customer.id,
+          magicLinkUrl,
+        }),
+      },
+    });
+
+    return {
+      success: true,
+      magicLinkUrl,
+      email: customer.user.email,
+      customerName: `${customer.firstName} ${customer.lastName}`,
+    };
+  } catch (err: any) {
+    console.error('Failed to send customer portal invitation:', err);
+    return { success: false, error: err.message || 'Failed to send invitation' };
+  }
+}
+

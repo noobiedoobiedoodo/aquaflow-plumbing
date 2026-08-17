@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Building, Wrench, CreditCard, Clock, Plus, Loader2, CheckCircle2, ShieldCheck, DollarSign, X, Share2, Copy, ExternalLink, QrCode, Globe } from 'lucide-react';
+import { Settings, Building, Wrench, CreditCard, Clock, Plus, Loader2, CheckCircle2, ShieldCheck, DollarSign, X, Share2, Copy, ExternalLink, QrCode, Globe, Users, UserPlus, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { createServiceManual, toggleServiceStatus, updateCompanyProfile } from '@/app/actions/settings';
+import { createServiceManual, toggleServiceStatus, updateCompanyProfile, createStaffMemberManual } from '@/app/actions/settings';
 import { toast } from 'sonner';
 
 export function SettingsHubClient({
@@ -11,15 +11,18 @@ export function SettingsHubClient({
   services,
   taxRules,
   businessHours,
+  members = [],
 }: {
   org: any;
   services: any[];
   taxRules: any[];
   businessHours: any[];
+  members?: any[];
 }) {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'SERVICES' | 'HOURS' | 'ACQUISITION' | 'PAYMENTS'>('PROFILE');
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'SERVICES' | 'HOURS' | 'ACQUISITION' | 'PAYMENTS' | 'TEAM'>('PROFILE');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://aquaflow-plumbing-theta.vercel.app';
   const bookingUrl = `${baseUrl}/p/${org.slug}/book`;
@@ -60,6 +63,21 @@ export function SettingsHubClient({
     }
   };
 
+  const handleCreateStaffSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    const res = await createStaffMemberManual(formData);
+    setIsSubmitting(false);
+
+    if (res.success) {
+      toast.success('Team member added successfully');
+      setIsAddStaffOpen(false);
+    } else {
+      toast.error(res.error || 'Failed to add team member');
+    }
+  };
+
   const handleToggleService = async (serviceId: string, currentActive: boolean) => {
     const res = await toggleServiceStatus(serviceId, !currentActive);
     if (res.success) {
@@ -84,6 +102,7 @@ export function SettingsHubClient({
       <div className="flex flex-wrap gap-2 border-b border-border/50 pb-2">
         {[
           { id: 'PROFILE', label: 'Company Profile', icon: Building },
+          { id: 'TEAM', label: `Staff & Team (${members.length})`, icon: Users },
           { id: 'ACQUISITION', label: 'Online Booking & Acquisition', icon: Share2 },
           { id: 'SERVICES', label: `Services (${services.length})`, icon: Wrench },
           { id: 'HOURS', label: 'Business Hours', icon: Clock },
@@ -175,6 +194,58 @@ export function SettingsHubClient({
               </Button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Tab: Staff & Team Management */}
+      {activeTab === 'TEAM' && (
+        <div className="space-y-6 max-w-4xl">
+          <div className="glass rounded-2xl border border-border/50 p-6 sm:p-8 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary-blue" /> Staff & Dispatch Team
+                </h2>
+                <p className="text-xs text-muted-text mt-1">
+                  Manage operations staff, dispatchers, and administrators with role-based dashboard access.
+                </p>
+              </div>
+              <Button
+                onClick={() => setIsAddStaffOpen(true)}
+                className="bg-primary-blue hover:bg-blue-600 text-white font-semibold flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" /> Add Staff Member
+              </Button>
+            </div>
+
+            <div className="divide-y divide-border/30 border border-border/40 rounded-xl overflow-hidden bg-background/40">
+              {members.length === 0 ? (
+                <div className="p-8 text-center text-muted-text text-sm">No additional staff members found.</div>
+              ) : (
+                members.map((m) => (
+                  <div key={m.id} className="p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition">
+                    <div>
+                      <div className="font-semibold text-white text-sm">
+                        {m.user?.firstName} {m.user?.lastName}
+                      </div>
+                      <div className="text-xs text-muted-text mt-0.5">{m.user?.email}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        m.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                        m.role === 'ADMIN' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                        m.role === 'DISPATCHER' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                        'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                      }`}>
+                        {m.role}
+                      </span>
+                      <span className="text-xs text-emerald-400 font-medium">Active</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -536,6 +607,90 @@ export function SettingsHubClient({
                 </Button>
                 <Button type="submit" disabled={isSubmitting} className="bg-primary-blue text-white">
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Service'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Staff Member Modal */}
+      {isAddStaffOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-secondary-bg border border-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-primary-blue" /> Add Staff Member
+              </h2>
+              <button onClick={() => setIsAddStaffOpen(false)} className="text-muted-text hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateStaffSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">First Name *</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    required
+                    placeholder="e.g. Alex"
+                    className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Last Name *</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    required
+                    placeholder="e.g. Dispatcher"
+                    className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address *</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="alex@winnipegpro.test"
+                  className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Initial Password *</label>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="At least 6 characters"
+                  className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Role *</label>
+                <select
+                  name="role"
+                  required
+                  defaultValue="DISPATCHER"
+                  className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
+                >
+                  <option value="DISPATCHER">Dispatcher (Operations, Scheduling, Invoicing)</option>
+                  <option value="ADMIN">Administrator (Full Dashboard & Management)</option>
+                </select>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-border/40">
+                <Button type="button" variant="ghost" onClick={() => setIsAddStaffOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="bg-primary-blue text-white">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Staff Account'}
                 </Button>
               </div>
             </form>

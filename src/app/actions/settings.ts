@@ -106,3 +106,80 @@ export async function updateCompanyProfile(formData: FormData) {
     return { success: false, error: err.message || 'Failed to update company profile' };
   }
 }
+
+const CreateStaffSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['DISPATCHER', 'ADMIN', 'SUPER_ADMIN']).default('DISPATCHER'),
+});
+
+export async function createStaffMemberManual(formData: FormData) {
+  try {
+    const { organizationId } = await requireRoleInOrg(['SUPER_ADMIN', 'ADMIN']);
+
+    const raw = {
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: (formData.get('email') as string)?.trim().toLowerCase(),
+      password: formData.get('password') as string,
+      role: (formData.get('role') as string) || 'DISPATCHER',
+    };
+
+    const parsed = CreateStaffSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || 'Validation failed' };
+    }
+
+    const { firstName, lastName, email, password, role } = parsed.data;
+    const { hashPassword } = await import('@/lib/auth/password');
+
+    const result = await prisma.$transaction(async (tx) => {
+      let user = await tx.user.findUnique({ where: { email } });
+
+      if (!user) {
+        const passwordHash = await hashPassword(password);
+        user = await tx.user.create({
+          data: {
+            email,
+            passwordHash,
+            firstName,
+            lastName,
+          },
+        });
+      }
+
+      // Create or update membership in this organization
+      const existingMembership = await tx.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId,
+          },
+        },
+      });
+
+      if (existingMembership) {
+        return await tx.organizationMember.update({
+          where: { id: existingMembership.id },
+          data: { role, isActive: true },
+        });
+      }
+
+      return await tx.organizationMember.create({
+        data: {
+          userId: user.id,
+          organizationId,
+          role,
+        },
+      });
+    });
+
+    revalidatePath('/dashboard/settings');
+    return { success: true, memberId: result.id };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to create staff member' };
+  }
+}
+
