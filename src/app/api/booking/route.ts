@@ -92,12 +92,21 @@ export async function POST(request: Request) {
       }
 
       // 4. Find or Create Property
-      let property = await tx.property.findFirst({
+      const customerProperties = await tx.property.findMany({
         where: {
           customerId: customer.id,
-          address: { contains: normStreet }, // Simple normalized match
-          postalCode: { contains: normPostalCode }
-        }
+          organizationId,
+        },
+      });
+
+      let property = customerProperties.find((p) => {
+        const existingNorm = normalizeAddress(p.address, p.city, p.province, p.postalCode);
+        const unitMatch = (p.unit || '').trim().toLowerCase() === (data.unit || '').trim().toLowerCase();
+        return (
+          existingNorm.normStreet === normStreet &&
+          existingNorm.normPostalCode === normPostalCode &&
+          unitMatch
+        );
       });
 
       if (!property) {
