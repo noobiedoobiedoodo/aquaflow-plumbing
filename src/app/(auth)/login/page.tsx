@@ -34,7 +34,23 @@ function LoginForm() {
         throw new Error(data.error || 'Failed to login');
       }
 
-      window.location.href = redirectPath;
+      // If explicit redirect param is present, respect it
+      if (searchParams.get('redirect')) {
+        window.location.href = redirectPath;
+        return;
+      }
+
+      // Role-aware destination: technicians go to /tech/dashboard, admins to /dashboard
+      const isAdmin = data.memberships?.some((m: any) =>
+        ['SUPER_ADMIN', 'ADMIN', 'DISPATCHER'].includes(m.role)
+      );
+      const isTech = data.memberships?.some((m: any) => m.role === 'TECHNICIAN');
+
+      if (isTech && !isAdmin) {
+        window.location.href = '/tech/dashboard';
+      } else {
+        window.location.href = '/dashboard';
+      }
     } catch (err: any) {
       setError(err.message);
       setIsLoading(false);
@@ -98,8 +114,15 @@ function LoginForm() {
         </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-muted-text">
-        For development access, use <br/>
+      <div className="mt-6 pt-6 border-t border-border/50 text-center text-sm">
+        <span className="text-muted-text">New plumbing business? </span>
+        <Link href="/signup" className="text-water-cyan hover:underline font-semibold">
+          Create an AquaFlow Account
+        </Link>
+      </div>
+
+      <div className="mt-4 text-center text-xs text-muted-text">
+        For development demo access, use <br/>
         <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded mt-1 inline-block">admin@aquaflowplumbing.com</code> / <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded">admin123</code>
       </div>
     </div>

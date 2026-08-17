@@ -35,9 +35,15 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="hidden md:block text-sm font-medium text-muted-text hover:text-white transition-colors">
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-sm font-medium text-muted-text hover:text-white transition-colors">
             Sign In
+          </Link>
+          <Link
+            href="/signup"
+            className="hidden md:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg border border-primary-blue/30 text-water-cyan bg-primary-blue/10 hover:bg-primary-blue/20 transition-colors"
+          >
+            Plumber Sign Up
           </Link>
           <Button asChild className="hidden sm:flex">
             <Link href="/book">Book Service</Link>

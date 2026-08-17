@@ -28,10 +28,10 @@ export function Footer() {
         <div>
           <h3 className="font-semibold text-white mb-4">Company</h3>
           <ul className="space-y-3">
+            <li><Link href="/signup" className="text-water-cyan font-medium hover:underline text-sm transition-colors">Plumber Sign Up</Link></li>
             <li><Link href="/book" className="text-muted-text hover:text-white text-sm transition-colors">About Us</Link></li>
             <li><Link href="/book" className="text-muted-text hover:text-white text-sm transition-colors">Careers</Link></li>
             <li><Link href="/book" className="text-muted-text hover:text-white text-sm transition-colors">Privacy Policy</Link></li>
-            <li><Link href="/book" className="text-muted-text hover:text-white text-sm transition-colors">Terms of Service</Link></li>
           </ul>
         </div>
 
