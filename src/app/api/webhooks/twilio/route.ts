@@ -4,7 +4,6 @@ import twilio from 'twilio';
 import { headers } from 'next/headers';
 
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 export async function POST(req: Request) {
   try {

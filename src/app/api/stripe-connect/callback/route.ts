@@ -4,6 +4,9 @@ import { prisma } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 
 export async function GET(req: Request) {
+  const { getServerBaseUrl } = await import('@/lib/config/url');
+  const baseUrl = await getServerBaseUrl();
+
   try {
     const { user } = await requireAuth();
 
@@ -13,13 +16,13 @@ export async function GET(req: Request) {
     });
 
     if (!membership) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`);
+      return NextResponse.redirect(`${baseUrl}/login`);
     }
 
     const org = membership.organization;
 
     if (!org.stripeAccountId) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/onboarding`);
+      return NextResponse.redirect(`${baseUrl}/onboarding`);
     }
 
     // Verify the account status with Stripe
@@ -31,15 +34,15 @@ export async function GET(req: Request) {
         data: {
           stripeConnectionStatus: 'ACTIVE',
           onboardingStatus: 'ONBOARDING_COMPLETE',
-        }
+        },
       });
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
+      return NextResponse.redirect(`${baseUrl}/dashboard`);
     } else {
       // Still pending
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/onboarding`);
+      return NextResponse.redirect(`${baseUrl}/onboarding`);
     }
   } catch (err: any) {
     console.error('Stripe Connect Callback Error:', err);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/onboarding?error=connect_failed`);
+    return NextResponse.redirect(`${baseUrl}/onboarding?error=connect_failed`);
   }
 }
