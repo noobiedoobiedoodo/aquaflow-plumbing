@@ -8,7 +8,9 @@ export default function SentryExamplePage() {
   const [loading, setLoading] = useState(false);
 
   const triggerClientError = () => {
-    throw new Error('Sentry Frontend Test Error - AquaFlow Client Verification');
+    const error = new Error('Sentry Frontend Test Error - AquaFlow Client Verification');
+    Sentry.captureException(error);
+    throw error;
   };
 
   const triggerServerError = async () => {
@@ -40,6 +42,18 @@ export default function SentryExamplePage() {
             <p className="text-xs text-slate-400">Org: <span className="text-indigo-400 font-mono">stephan-sabeski</span> | Project: <span className="text-indigo-400 font-mono">javascript-nextjs</span></p>
           </div>
         </div>
+
+        {!process.env.NEXT_PUBLIC_SENTRY_DSN && (
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 space-y-1">
+            <p className="font-semibold flex items-center space-x-1.5">
+              <span>⚠️</span>
+              <span>NEXT_PUBLIC_SENTRY_DSN is missing in your .env</span>
+            </p>
+            <p className="text-amber-400/90 leading-relaxed">
+              Sentry cannot send errors without a DSN. Add <code>NEXT_PUBLIC_SENTRY_DSN=...</code> from your Sentry dashboard to your <code>.env</code> file.
+            </p>
+          </div>
+        )}
 
         <p className="text-sm text-slate-300 leading-relaxed">
           Use the buttons below to trigger test exceptions and verify that error monitoring, stack traces, and breadcrumbs are arriving in your Sentry dashboard.
