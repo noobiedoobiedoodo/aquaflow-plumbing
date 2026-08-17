@@ -639,7 +639,7 @@ describe('Public Customer Acquisition & Booking Wizard Forensic Audit', () => {
       expect(createdUser).not.toBeNull();
       expect(createdUser!.firstName).toBe('Forensic');
       expect(createdUser!.lastName).toBe('Auditor');
-      expect(createdUser!.passwordHash).toBe('guest_no_login');
+      expect(createdUser!.passwordHash).toBeNull();
 
       // Verify DB Customer Record Scoped to Org A
       const customer = await prisma.customer.findUnique({

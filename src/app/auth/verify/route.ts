@@ -71,6 +71,7 @@ export async function GET(req: Request) {
   // 3. Create Session and Cookie
   await createCustomerSession(customerId);
 
-  // 4. Redirect to Portal Dashboard
-  return NextResponse.redirect(new URL('/portal/dashboard', req.url));
+  // 4. Redirect: If customer has not established a password yet, guide to setup-password; else dashboard
+  const destination = !magicLink.user.passwordSetAt ? '/portal/setup-password' : '/portal/dashboard';
+  return NextResponse.redirect(new URL(destination, req.url));
 }

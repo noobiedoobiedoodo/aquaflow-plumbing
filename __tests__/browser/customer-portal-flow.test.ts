@@ -589,9 +589,9 @@ describe('Customer Portal & Magic Link Authentication Forensic Audit', () => {
       const verifyReq = new Request(`http://localhost:3000/auth/verify?token=${rawToken}`);
       const verifyRes = await verifyHandler(verifyReq);
 
-      // Next.js redirect to dashboard
+      // Next.js redirect to activation or dashboard
       expect(verifyRes.status).toBe(307);
-      expect(verifyRes.headers.get('location')).toContain('/portal/dashboard');
+      expect(verifyRes.headers.get('location')).toMatch(/\/portal\/(setup-password|dashboard)/);
 
       // 3. Verify database updates
       const updatedToken = await prisma.magicLinkToken.findUnique({ where: { tokenHash } });

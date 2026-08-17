@@ -19,6 +19,10 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        memberships: true,
+        customers: true,
+      },
     });
 
     // We always return success to avoid email enumeration
@@ -26,21 +30,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
-    const token = generateToken();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // Expires in 1 hour
+    const { hashToken } = await import('@/lib/auth/customer-session');
+    const { randomBytes } = await import('crypto');
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    const orgId = user.memberships[0]?.organizationId || user.customers[0]?.organizationId || null;
 
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
-        token,
+        organizationId: orgId,
+        tokenHash,
         expiresAt,
       },
     });
 
-    // In a real application, we would send an email here.
-    // For development, log the token to the console.
-    console.log(`Password reset token for ${email}: ${token}`);
+    // Construct production URL for email dispatch
+    const { getAbsoluteServerUrl } = await import('@/lib/config/url');
+    const resetUrl = await getAbsoluteServerUrl(`/auth/reset-password?token=${rawToken}`);
+
+    // Create Notification record for email if org exists
+    if (orgId) {
+      await prisma.notification.create({
+        data: {
+          organizationId: orgId,
+          userId: user.id,
+          idempotencyKey: `pwdreset:${tokenHash}`,
+          type: 'PASSWORD_RESET',
+          channel: 'EMAIL',
+          status: 'PENDING',
+          subject: 'Reset Your AquaFlow Password',
+          content: `Hi ${user.firstName || 'User'},\n\nClick the link below to securely reset your password:\n\n${resetUrl}\n\nThis link is active for 1 hour.`,
+          metadata: JSON.stringify({ email: user.email, resetUrl, organizationId: orgId }),
+        },
+      });
+    }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

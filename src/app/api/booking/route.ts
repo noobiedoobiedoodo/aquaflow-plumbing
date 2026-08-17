@@ -64,7 +64,8 @@ export async function POST(request: Request) {
             firstName: data.firstName,
             lastName: data.lastName,
             phone: data.phone,
-            passwordHash: 'guest_no_login', // They cannot log in directly with password
+            passwordHash: null,
+            passwordSetAt: null,
           }
         });
       }

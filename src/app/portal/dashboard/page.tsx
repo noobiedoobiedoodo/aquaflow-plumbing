@@ -1,10 +1,15 @@
 import { requireCustomerSession } from '@/lib/auth/customer-session';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
-import { Calendar, FileText, ArrowRight } from 'lucide-react';
+import { Calendar, FileText, ArrowRight, Wrench, ShieldAlert } from 'lucide-react';
 
 export default async function PortalDashboard() {
   const { customerId, customer } = await requireCustomerSession();
+
+  const user = await prisma.user.findUnique({
+    where: { id: customer.userId },
+    select: { passwordSetAt: true },
+  });
 
   // Fetch Upcoming Appointments (Strictly scoped to customerId)
   const upcomingAppointments = await prisma.appointment.findMany({
@@ -41,10 +46,38 @@ export default async function PortalDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900 tracking-tight">Welcome back, {customer.firstName}!</h1>
-        <p className="text-neutral-500 mt-1">Here is the latest overview of your service history.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 tracking-tight">Welcome back, {customer.firstName}!</h1>
+          <p className="text-neutral-500 mt-1">Here is the latest overview of your service history.</p>
+        </div>
+        <Link
+          href="/portal/book"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-sm transition"
+        >
+          <Wrench className="w-4 h-4" /> Request Service
+        </Link>
       </div>
+
+      {!user?.passwordSetAt && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+            <div>
+              <div className="font-semibold text-blue-950 text-sm">Activate Permanent Password</div>
+              <div className="text-xs text-blue-700 mt-0.5">
+                Set a password to return and sign into your customer portal anytime without requesting magic links.
+              </div>
+            </div>
+          </div>
+          <Link
+            href="/portal/setup-password"
+            className="shrink-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition text-center"
+          >
+            Create Password
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Action Required Section */}

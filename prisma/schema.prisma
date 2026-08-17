@@ -83,7 +83,8 @@ model Organization {
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
-  passwordHash  String
+  passwordHash  String?
+  passwordSetAt DateTime?
   firstName     String?
   lastName      String?
   phone         String?
@@ -146,16 +147,18 @@ model Session {
 }
 
 model PasswordResetToken {
-  id        String    @id @default(uuid())
-  userId    String
-  token     String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  id             String    @id @default(uuid())
+  userId         String
+  organizationId String?
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
+  @@index([tokenHash])
+  @@index([userId])
 }
 
 model EmailVerificationToken {

@@ -18,9 +18,12 @@ export async function POST(request: Request) {
 
     const { token, newPassword } = result.data;
 
-    // Find token
+    const { hashToken } = await import('@/lib/auth/customer-session');
+    const tokenHash = hashToken(token);
+
+    // Find token by tokenHash
     const resetToken = await prisma.passwordResetToken.findUnique({
-      where: { token },
+      where: { tokenHash },
       include: { user: true },
     });
 
@@ -56,19 +59,28 @@ export async function POST(request: Request) {
     const passwordHash = await hashPassword(newPassword);
 
     // Update user password and mark token as used
-    // Use a transaction
     await prisma.$transaction([
       prisma.user.update({
         where: { id: resetToken.userId },
-        data: { passwordHash },
+        data: {
+          passwordHash,
+          passwordSetAt: new Date(),
+        },
       }),
       prisma.passwordResetToken.update({
         where: { id: resetToken.id },
         data: { usedAt: new Date() },
       }),
+      prisma.customerSession.updateMany({
+        where: {
+          customer: { userId: resetToken.userId },
+          revokedAt: null,
+        },
+        data: { revokedAt: new Date() },
+      }),
     ]);
 
-    // Revoke all existing sessions so they have to log in again
+    // Revoke all existing staff sessions so they have to log in again
     await revokeAllUserSessions(resetToken.userId);
 
     return NextResponse.json({ success: true }, { status: 200 });

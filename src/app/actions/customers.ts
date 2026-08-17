@@ -61,7 +61,8 @@ export async function createCustomerManually(formData: FormData) {
             firstName: data.firstName,
             lastName: data.lastName,
             phone: data.phone || null,
-            passwordHash: 'manual_intake_no_password',
+            passwordHash: null,
+            passwordSetAt: null,
           },
         });
       }
