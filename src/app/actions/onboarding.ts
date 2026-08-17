@@ -45,7 +45,7 @@ export async function registerTenant(formData: FormData) {
           city: 'Winnipeg',
           province: 'MB',
           country: 'CA',
-          onboardingStatus: 'COMPLETED',
+          onboardingStatus: 'ONBOARDING_COMPLETE',
           isActive: true,
         }
       });

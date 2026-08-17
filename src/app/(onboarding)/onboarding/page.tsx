@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
   const status = org.onboardingStatus;
 
   // If already complete, redirect to dashboard
-  if (status === 'ONBOARDING_COMPLETE') {
+  if (status === 'ONBOARDING_COMPLETE' || status === 'COMPLETED') {
     redirect('/dashboard');
   }
 
