@@ -46,9 +46,9 @@ export function validateEnvironment(envObj: Record<string, string | undefined> =
 
   const env = parsed.data;
   const isProduction = env.NODE_ENV === 'production';
-  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' || process.env.CI === '1' || process.env.VERCEL === '1';
+  const isNextBuildPhase = envObj === process.env && process.env.NEXT_PHASE === 'phase-production-build';
 
-  if (isProduction && !isBuildPhase) {
+  if (isProduction && !isNextBuildPhase) {
     const productionErrors: string[] = [];
 
     // 1. Database validation
@@ -64,18 +64,22 @@ export function validateEnvironment(envObj: Record<string, string | undefined> =
       productionErrors.push('SESSION_SECRET cannot use the development default placeholder in production.');
     }
 
-    // 3. Stripe Secrets validation (if Stripe key provided, must not be mock)
-    if (env.STRIPE_SECRET_KEY && FORBIDDEN_PRODUCTION_VALUES.has(env.STRIPE_SECRET_KEY)) {
+    // 3. Stripe Secrets validation
+    if (!env.STRIPE_SECRET_KEY) {
+      productionErrors.push('STRIPE_SECRET_KEY is required in production.');
+    } else if (FORBIDDEN_PRODUCTION_VALUES.has(env.STRIPE_SECRET_KEY)) {
       productionErrors.push('STRIPE_SECRET_KEY cannot use mock placeholder values in production.');
     }
 
-    if (env.STRIPE_WEBHOOK_SECRET && FORBIDDEN_PRODUCTION_VALUES.has(env.STRIPE_WEBHOOK_SECRET)) {
+    if (!env.STRIPE_WEBHOOK_SECRET) {
+      productionErrors.push('STRIPE_WEBHOOK_SECRET is required in production.');
+    } else if (FORBIDDEN_PRODUCTION_VALUES.has(env.STRIPE_WEBHOOK_SECRET)) {
       productionErrors.push('STRIPE_WEBHOOK_SECRET cannot use mock placeholder values in production.');
     }
 
-    // 4. Redis validation (if Redis key provided)
-    if (env.REDIS_URL && FORBIDDEN_PRODUCTION_VALUES.has(env.REDIS_URL)) {
-      productionErrors.push('REDIS_URL cannot use forbidden default values in production.');
+    // 4. Redis validation
+    if (!env.REDIS_URL) {
+      productionErrors.push('REDIS_URL is required in production for background workers and rate limiting.');
     }
 
     // 5. Storage validation (if S3 bucket is defined)

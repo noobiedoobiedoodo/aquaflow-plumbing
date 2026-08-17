@@ -1,8 +1,38 @@
-export default function SettingsPage() {
+import { prisma } from '@/lib/db';
+import { requireRoleInOrg } from '@/lib/auth/session';
+import { ADMIN_ROLES } from '@/lib/constants';
+import { notFound } from 'next/navigation';
+import { SettingsHubClient } from './SettingsHubClient';
+
+export default async function SettingsPage() {
+  const { organizationId } = await requireRoleInOrg(ADMIN_ROLES);
+
+  const [org, services, taxRules, businessHours] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+    }),
+    prisma.service.findMany({
+      where: { organizationId },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.taxRule.findMany({
+      where: { organizationId },
+      orderBy: { jurisdiction: 'asc' },
+    }),
+    prisma.businessHours.findMany({
+      where: { organizationId },
+      orderBy: { id: 'asc' },
+    }),
+  ]);
+
+  if (!org) notFound();
+
   return (
-    <div className="glass p-8 rounded-2xl border border-border/50 h-[800px] flex flex-col items-center justify-center text-center">
-      <h1 className="text-2xl font-bold text-white mb-2">Settings</h1>
-      <p className="text-muted-text">This view is coming in a future phase.</p>
-    </div>
+    <SettingsHubClient
+      org={org}
+      services={services}
+      taxRules={taxRules}
+      businessHours={businessHours}
+    />
   );
 }
