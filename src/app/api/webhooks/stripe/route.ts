@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     try {
       await prisma.$transaction(async (tx) => {
-        // 1. Idempotency Check
+        // 1. Idempotency Check & Atomic Claim
         const existingEvent = await tx.stripeWebhookEvent.findUnique({
           where: { stripeEventId: event.id }
         });
@@ -53,12 +53,20 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        await tx.stripeWebhookEvent.create({
-          data: {
-            stripeEventId: event.id,
-            type: event.type,
+        try {
+          await tx.stripeWebhookEvent.create({
+            data: {
+              stripeEventId: event.id,
+              type: event.type,
+            }
+          });
+        } catch (eventErr: any) {
+          if (eventErr.code === 'P2002' || eventErr.message?.includes('Unique constraint')) {
+            console.log(`Stripe webhook event ${event.id} already claimed concurrently. Skipping.`);
+            return;
           }
-        });
+          throw eventErr;
+        }
 
         const existingPayment = await tx.payment.findUnique({
           where: { providerPaymentId: paymentIntent.id }

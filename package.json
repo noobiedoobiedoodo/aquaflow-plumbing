@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "load-test": "npx tsx scripts/load-test/runner.ts --allow",
+    "load-test:acceptance": "npx tsx scripts/load-test/runner.ts --allow",
+    "load-test:smoke": "npx tsx scripts/load-test/runner.ts --allow --smoke",
+    "load-test:stress": "npx tsx scripts/load-test/runner.ts --allow --stress",
+    "load-test:soak": "npx tsx scripts/load-test/runner.ts --allow --soak"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1111.0",
@@ -15,6 +20,7 @@
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@sentry/nextjs": "^10.70.0",
     "@stripe/react-stripe-js": "^6.8.1",
     "@stripe/stripe-js": "^9.13.0",
     "@upstash/redis": "^1.38.2",

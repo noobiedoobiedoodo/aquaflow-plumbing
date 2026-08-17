@@ -47,11 +47,15 @@ export async function GET(req: Request) {
 
   const customerId = customerRecord.id;
 
-  // 1. Mark token as used
-  await prisma.magicLinkToken.update({
-    where: { id: magicLink.id },
+  // 1. Atomic token consumption (prevents concurrent replay race conditions)
+  const updatedToken = await prisma.magicLinkToken.updateMany({
+    where: { id: magicLink.id, usedAt: null },
     data: { usedAt: new Date() }
   });
+
+  if (updatedToken.count === 0) {
+    return new NextResponse('This link has already been used.', { status: 400 });
+  }
 
   // 2. Mark email as verified if not already
   if (!magicLink.user.emailVerified) {

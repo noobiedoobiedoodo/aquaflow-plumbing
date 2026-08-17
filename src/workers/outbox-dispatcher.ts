@@ -46,7 +46,13 @@ export async function claimAndDispatchPendingEvents(batchSize = 50): Promise<num
       }));
 
       if (eventsQueue) {
-        await eventsQueue.addBulk(jobs);
+        try {
+          await eventsQueue.addBulk(jobs);
+        } catch (queueErr) {
+          Logger.warn('Queue dispatch failed, events remain in PROCESSING for worker retry or inline delivery', {
+            operation: 'outbox.queue_fallback',
+          });
+        }
       }
 
       return claimedEvents.length;

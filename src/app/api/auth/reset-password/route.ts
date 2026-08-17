@@ -58,27 +58,33 @@ export async function POST(request: Request) {
     // Hash new password
     const passwordHash = await hashPassword(newPassword);
 
-    // Update user password and mark token as used
-    await prisma.$transaction([
-      prisma.user.update({
+    // Update user password and mark token as used atomically
+    await prisma.$transaction(async (tx) => {
+      const updatedToken = await tx.passwordResetToken.updateMany({
+        where: { id: resetToken.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+
+      if (updatedToken.count === 0) {
+        throw new Error('Token has already been used');
+      }
+
+      await tx.user.update({
         where: { id: resetToken.userId },
         data: {
           passwordHash,
           passwordSetAt: new Date(),
         },
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: resetToken.id },
-        data: { usedAt: new Date() },
-      }),
-      prisma.customerSession.updateMany({
+      });
+
+      await tx.customerSession.updateMany({
         where: {
           customer: { userId: resetToken.userId },
           revokedAt: null,
         },
         data: { revokedAt: new Date() },
-      }),
-    ]);
+      });
+    });
 
     // Revoke all existing staff sessions so they have to log in again
     await revokeAllUserSessions(resetToken.userId);

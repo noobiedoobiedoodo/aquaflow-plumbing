@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const cspHeader = `
   default-src 'self';
@@ -7,7 +8,7 @@ const cspHeader = `
   img-src 'self' data: blob: https://*.stripe.com https://images.unsplash.com;
   font-src 'self' https://fonts.gstatic.com data:;
   frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
-  connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://api.mapbox.com https://*.resend.com wss: ws:;
+  connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://api.mapbox.com https://*.resend.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io wss: ws:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
@@ -50,4 +51,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry project configuration
+  org: "stephan-sabeski",
+  project: "javascript-nextjs",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers
+  tunnelRoute: "/monitoring",
+});
