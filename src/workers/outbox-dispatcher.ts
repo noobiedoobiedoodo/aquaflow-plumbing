@@ -45,7 +45,9 @@ export async function claimAndDispatchPendingEvents(batchSize = 50): Promise<num
         },
       }));
 
-      await eventsQueue.addBulk(jobs);
+      if (eventsQueue) {
+        await eventsQueue.addBulk(jobs);
+      }
 
       return claimedEvents.length;
     });

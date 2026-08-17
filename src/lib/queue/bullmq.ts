@@ -16,9 +16,9 @@ export type NotificationQueueJobData = {
   notificationId: string;
 };
 
-// Create queue instances
-export const eventsQueue = new Queue<EventQueueJobData>(QUEUES.EVENTS, { connection: redis });
-export const notificationsQueue = new Queue<NotificationQueueJobData>(QUEUES.NOTIFICATIONS, { connection: redis });
+// Create queue instances (null-safe if Redis is unconfigured)
+export const eventsQueue = redis ? new Queue<EventQueueJobData>(QUEUES.EVENTS, { connection: redis }) : null;
+export const notificationsQueue = redis ? new Queue<NotificationQueueJobData>(QUEUES.NOTIFICATIONS, { connection: redis }) : null;
 
 // In Next.js environments, we generally don't want to instantiate Workers inside
 // the normal web process (api routes/page renders). 

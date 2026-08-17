@@ -17,7 +17,10 @@ export function CustomerInviteButton({ customerId, customerEmail }: { customerId
 
     if (res.success && res.magicLinkUrl) {
       setInvitationUrl(res.magicLinkUrl);
-      toast.success(`Portal invitation created for ${customerEmail}!`);
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(res.magicLinkUrl);
+      }
+      toast.success(`Portal link generated & copied to clipboard for ${customerEmail}!`);
     } else {
       toast.error(res.error || 'Failed to send invitation');
     }

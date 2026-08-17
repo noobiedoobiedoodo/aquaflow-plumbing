@@ -154,6 +154,10 @@ export async function processNotification(job: Job<NotificationQueueJobData>) {
 }
 
 export function startNotificationSender() {
+  if (!redis) {
+    Logger.warn('Skipping Notification Sender worker: REDIS_URL not configured.', { operation: 'worker.notification.skip' });
+    return null;
+  }
   Logger.info('Starting Notification Sender worker...', { operation: 'worker.notification.start' });
   const worker = new Worker<NotificationQueueJobData>(QUEUES.NOTIFICATIONS, processNotification, {
     connection: redis,

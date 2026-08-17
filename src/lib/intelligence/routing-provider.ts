@@ -45,7 +45,7 @@ export class MapboxRoutingProvider implements IRoutingProvider {
     const cacheKey = `route:${originLat.toFixed(4)},${originLng.toFixed(4)}:${destLat.toFixed(4)},${destLng.toFixed(4)}`;
     
     try {
-      const cached = await redis.get(cacheKey);
+      const cached = redis ? await redis.get(cacheKey) : null;
       if (cached) {
         const parsed = JSON.parse(cached);
         parsed.calculatedAt = new Date(parsed.calculatedAt);
@@ -86,7 +86,9 @@ export class MapboxRoutingProvider implements IRoutingProvider {
 
       // Cache for 15 minutes to balance API cost vs traffic freshness
       try {
-        await redis.setex(cacheKey, 900, JSON.stringify(result));
+        if (redis) {
+          await redis.setex(cacheKey, 900, JSON.stringify(result));
+        }
       } catch (e) {
         console.warn('Redis cache write failed for Mapbox route', e);
       }

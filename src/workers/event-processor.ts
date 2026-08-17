@@ -59,6 +59,10 @@ export async function processEvent(job: Job<EventQueueJobData>) {
 }
 
 export function startEventProcessor() {
+  if (!redis) {
+    Logger.warn('Skipping Event Processor worker: REDIS_URL not configured.', { operation: 'worker.event.skip' });
+    return null;
+  }
   Logger.info('Starting Event Processor worker...', { operation: 'worker.event.start' });
   const worker = new Worker<EventQueueJobData>(QUEUES.EVENTS, processEvent, { connection: redis });
 

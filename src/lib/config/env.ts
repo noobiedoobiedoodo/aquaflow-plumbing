@@ -14,7 +14,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default('postgresql://postgres@localhost:5432/aquaflow_db?schema=public'),
   SESSION_SECRET: z.string().default('dev-secret-change-in-production-min-32-chars-long'),
   SESSION_MAX_AGE_DAYS: z.coerce.number().default(30),
-  REDIS_URL: z.string().optional().default('redis://localhost:6379'),
+  REDIS_URL: z.string().optional(),
   REDIS_TOKEN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),

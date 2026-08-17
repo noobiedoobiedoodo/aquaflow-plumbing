@@ -15,11 +15,11 @@ Logger.info('All AquaFlow workers initialized successfully.', { operation: 'work
 async function shutdown(signal: string) {
   Logger.info(`Received ${signal}. Shutting down worker process gracefully...`, { operation: 'worker.shutdown' });
   clearInterval(outboxTimer);
-  await Promise.allSettled([
-    eventWorker.close(),
-    notificationWorker.close(),
-    redis.quit(),
-  ]);
+  const tasks: Promise<any>[] = [];
+  if (eventWorker) tasks.push(eventWorker.close());
+  if (notificationWorker) tasks.push(notificationWorker.close());
+  if (redis) tasks.push(redis.quit());
+  await Promise.allSettled(tasks);
   process.exit(0);
 }
 
