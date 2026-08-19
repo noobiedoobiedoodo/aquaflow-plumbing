@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
           console.error(
             `SECURITY: Stripe account verification failed! Event account: ${stripeConnectedAccount}, Invoice org account: ${invoice.organization.stripeAccountId}`
           );
-          throw new Error('Stripe account mismatch or unconfigured connected account.');
+          throw new Error('Security Rejection: Organization has no connected Stripe account or account mismatch.');
         }
 
         const amountPaidDollars = Number((paymentIntent.amount / 100).toFixed(2));
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
         return new NextResponse('Already processed', { status: 200 });
       }
 
-      if (dbError.message?.includes('Stripe account mismatch') || dbError.message?.includes('unconfigured connected account')) {
+      if (dbError.message?.includes('Security Rejection') || dbError.message?.includes('Stripe account mismatch') || dbError.message?.includes('unconfigured connected account')) {
         return new NextResponse(`Security Rejection: ${dbError.message}`, { status: 400 });
       }
 

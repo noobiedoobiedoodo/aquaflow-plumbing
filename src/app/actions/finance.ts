@@ -214,9 +214,6 @@ export async function createPaymentIntentFromToken(paymentToken: string) {
   });
 
   if (!invoice) throw new Error("Invoice not found or invalid token");
-  if (invoice.status === 'VOID') throw new Error("This invoice is voided and cannot accept payment.");
-  if (!invoice.organization.stripeAccountId) throw new Error("The merchant has not connected a payment account.");
-  
   const balanceDue = Number((invoice.total - invoice.amountPaid).toFixed(2));
   
   if (balanceDue <= 0) {
@@ -226,6 +223,7 @@ export async function createPaymentIntentFromToken(paymentToken: string) {
   const { stripe } = await import('@/lib/stripe');
 
   const amountInCents = Math.round(balanceDue * 100);
+  const stripeAccount = invoice.organization.stripeAccountId || undefined;
 
   const paymentIntent = await stripe.paymentIntents.create(
     {
@@ -237,10 +235,14 @@ export async function createPaymentIntentFromToken(paymentToken: string) {
       },
       receipt_email: invoice.customer?.user?.email || undefined,
     },
-    {
-      stripeAccount: invoice.organization.stripeAccountId,
-      idempotencyKey: `pi_create_${invoice.id}_${amountInCents}`,
-    }
+    stripeAccount
+      ? {
+          stripeAccount,
+          idempotencyKey: `pi_create_${invoice.id}_${amountInCents}`,
+        }
+      : {
+          idempotencyKey: `pi_create_${invoice.id}_${amountInCents}`,
+        }
   );
 
   return {
