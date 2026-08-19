@@ -138,6 +138,6 @@ export async function registerTenant(formData: FormData) {
     return { success: true, slug: result.org.slug };
   } catch (error: any) {
     console.error('Registration error:', error);
-    return { success: false, error: 'An unexpected error occurred during signup.' };
+    return { success: false, error: error?.message || 'An unexpected error occurred during signup.' };
   }
 }
