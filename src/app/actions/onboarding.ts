@@ -6,6 +6,8 @@ import { createSession, setSessionCookie } from '@/lib/auth/session';
 import { z } from 'zod';
 import { ROLES, DEFAULT_SERVICES } from '@/lib/constants';
 
+import { randomUUID } from 'crypto';
+
 const SignupSchema = z.object({
   companyName: z.string().min(2, 'Company name is required').max(100),
   firstName: z.string().min(1, 'First name is required').max(50),
@@ -33,7 +35,14 @@ export async function registerTenant(formData: FormData) {
     }
 
     const baseSlug = data.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+    let slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+    let attempts = 0;
+    while (attempts < 10) {
+      const existingOrg = await prisma.organization.findUnique({ where: { slug } });
+      if (!existingOrg) break;
+      slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+      attempts++;
+    }
 
     // Execute within an atomic transaction
     const result = await prisma.$transaction(async (tx) => {
