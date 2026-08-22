@@ -17,6 +17,12 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
+          <Link href="/pilot" className="text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+            <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full">
+              Founding Pilot
+            </span>
+            $199/mo Offer
+          </Link>
           <Link href="/book" className="text-sm font-medium text-muted-text hover:text-white transition-colors">
             Services
           </Link>
@@ -30,9 +36,6 @@ export function Header() {
           <Link href="/book" className="text-sm font-medium text-muted-text hover:text-white transition-colors">
             About Us
           </Link>
-          <Link href="/book" className="text-sm font-medium text-muted-text hover:text-white transition-colors">
-            Contact
-          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -40,10 +43,10 @@ export function Header() {
             Sign In
           </Link>
           <Link
-            href="/signup"
-            className="hidden md:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg border border-primary-blue/30 text-water-cyan bg-primary-blue/10 hover:bg-primary-blue/20 transition-colors"
+            href="/pilot"
+            className="hidden sm:inline-flex text-xs font-bold px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:shadow-[0_0_25px_rgba(0,229,255,0.6)] transition-all"
           >
-            Plumber Sign Up
+            Apply for $199 Pilot
           </Link>
           <Button asChild className="hidden sm:flex">
             <Link href="/book">Book Service</Link>
