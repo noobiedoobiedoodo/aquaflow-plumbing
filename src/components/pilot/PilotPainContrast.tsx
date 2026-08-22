@@ -84,9 +84,9 @@ export function PilotPainContrast() {
             {/* Financial Impact Box */}
             <div className="mt-8 p-5 rounded-2xl bg-red-950/40 border border-red-500/30 flex items-center justify-between">
               <div>
-                <span className="text-xs uppercase tracking-wider font-semibold text-red-300">Estimated Revenue Bleed</span>
+                <span className="text-xs uppercase tracking-wider font-semibold text-red-300">Illustrative Example</span>
                 <div className="text-2xl sm:text-3xl font-extrabold text-red-400 mt-0.5">-$800 to -$2,500+</div>
-                <span className="text-[11px] text-slate-400">Lost per month in missed calls & billing delays</span>
+                <span className="text-[11px] text-slate-400">Typical monthly revenue lost from missed emergency calls & delayed billing</span>
               </div>
               <span className="text-3xl">📉</span>
             </div>

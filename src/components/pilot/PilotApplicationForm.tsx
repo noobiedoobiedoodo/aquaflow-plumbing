@@ -27,6 +27,14 @@ const PAIN_POINTS_OPTIONS = [
 
 export function PilotApplicationForm() {
   const [step, setStep] = useState(1);
+  const [utmData, setUtmData] = useState({
+    utmSource: '',
+    utmMedium: '',
+    utmCampaign: '',
+    utmContent: '',
+    referrer: '',
+  });
+
   const [formData, setFormData] = useState({
     companyName: '',
     contactName: '',
@@ -44,6 +52,36 @@ export function PilotApplicationForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successResult, setSuccessResult] = useState<{ leadId: string; message: string } | null>(null);
 
+  // Initialize and preserve UTM tracking parameters on mount
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setUtmData({
+        utmSource: params.get('utm_source') || '',
+        utmMedium: params.get('utm_medium') || '',
+        utmCampaign: params.get('utm_campaign') || '',
+        utmContent: params.get('utm_content') || '',
+        referrer: document.referrer || '',
+      });
+      // Track page view event
+      trackConversionEvent('pilot_page_view', { source: params.get('utm_source') || 'direct' });
+    }
+  }, []);
+
+  const trackConversionEvent = (eventName: string, metadata?: Record<string, any>) => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aquaflow_pilot_event', { detail: { eventName, ...metadata } }));
+        // Safe logging for dev/marketing inspection
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`[Pilot Conversion Tracking] 🎯 ${eventName}`, metadata);
+        }
+      }
+    } catch {
+      // Ignore analytics logging errors
+    }
+  };
+
   const handlePainPointToggle = (item: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -60,14 +98,18 @@ export function PilotApplicationForm() {
     if (step === 1) {
       if (!formData.companyName || !formData.contactName || !formData.email || !formData.phone || !formData.city || !formData.province) {
         setErrorMessage('Please fill out all required company and contact fields.');
+        trackConversionEvent('application_error', { step: 1, reason: 'missing_fields' });
         return;
       }
+      trackConversionEvent('application_step_2', { company: formData.companyName });
       setStep(2);
     } else if (step === 2) {
       if (!formData.technicianCount) {
         setErrorMessage('Please select your current operational size.');
+        trackConversionEvent('application_error', { step: 2, reason: 'missing_tech_count' });
         return;
       }
+      trackConversionEvent('application_step_3', { techCount: formData.technicianCount });
       setStep(3);
     }
   };
@@ -78,21 +120,21 @@ export function PilotApplicationForm() {
 
     if (formData.painPoints.length === 0) {
       setErrorMessage('Please select at least one operational headache.');
+      trackConversionEvent('application_error', { step: 3, reason: 'no_pain_points_selected' });
       return;
     }
 
     setLoading(true);
+    trackConversionEvent('application_started', { email: formData.email });
 
     try {
-      // Capture UTM parameters from URL if present
-      const urlParams = new URLSearchParams(window.location.search);
       const payload = {
         ...formData,
-        utmSource: urlParams.get('utm_source') || undefined,
-        utmMedium: urlParams.get('utm_medium') || undefined,
-        utmCampaign: urlParams.get('utm_campaign') || undefined,
-        utmContent: urlParams.get('utm_content') || undefined,
-        referrer: typeof document !== 'undefined' ? document.referrer : undefined,
+        utmSource: utmData.utmSource || undefined,
+        utmMedium: utmData.utmMedium || undefined,
+        utmCampaign: utmData.utmCampaign || undefined,
+        utmContent: utmData.utmContent || undefined,
+        referrer: utmData.referrer || undefined,
       };
 
       const res = await fetch('/api/pilot/apply', {
@@ -107,11 +149,18 @@ export function PilotApplicationForm() {
         throw new Error(data.message || 'Failed to submit application. Please check your fields.');
       }
 
+      if (data.isDuplicate) {
+        trackConversionEvent('duplicate_application', { leadId: data.leadId });
+      } else {
+        trackConversionEvent('application_completed', { leadId: data.leadId });
+      }
+
       setSuccessResult({
         leadId: data.leadId,
         message: data.message,
       });
     } catch (err: any) {
+      trackConversionEvent('application_error', { error: err.message });
       setErrorMessage(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);

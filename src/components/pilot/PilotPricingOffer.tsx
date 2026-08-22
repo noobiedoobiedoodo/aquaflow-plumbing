@@ -115,16 +115,16 @@ export function PilotPricingOffer() {
               </h3>
 
               <p className="mt-3 text-sm text-slate-300 leading-relaxed">
-                In plumbing, a single water heater replacement, main line drain clear, or pipe repair produces <span className="text-white font-semibold">$350 to $2,500+</span> in revenue.
+                In plumbing, a single emergency service call (such as a water heater replacement or main line clearing) typically yields <span className="text-white font-semibold">$350 to $1,500+</span> in revenue.
               </p>
 
               <div className="mt-6 space-y-3">
                 <div className="p-4 rounded-2xl bg-red-950/20 border border-red-500/20">
                   <div className="flex items-center justify-between text-xs font-bold text-red-400 mb-1">
-                    <span>1 Missed Emergency Call</span>
+                    <span>1 Missed Emergency Call (Example)</span>
                     <span>-$450.00</span>
                   </div>
-                  <p className="text-xs text-slate-400">Customer calls another plumber while you were searching for notes.</p>
+                  <p className="text-xs text-slate-400">Homeowner calls another plumber when unreachable.</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30">
@@ -138,8 +138,8 @@ export function PilotPricingOffer() {
             </div>
 
             <div className="mt-8 p-5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300">
-              <strong className="text-white block mb-1">Zero Financial Risk Math:</strong>
-              You don&apos;t need to recover dozens of lost jobs for AquaFlow to pay for itself. Recovering just <span className="text-cyan-400 font-semibold">one service call</span> pays for your software for the entire month.
+              <strong className="text-white block mb-1">Illustrative ROI Scenario:</strong>
+              You don&apos;t need to recover dozens of jobs for AquaFlow to pay for itself. Recovering just <span className="text-cyan-400 font-semibold">one typical service call</span> covers the entire monthly software investment.
             </div>
           </motion.div>
         </div>
