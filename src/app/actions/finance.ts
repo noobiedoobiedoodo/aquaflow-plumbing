@@ -12,6 +12,7 @@ async function generateInvoiceNumber(tx: Parameters<Parameters<typeof prisma.$tr
   const year = new Date().getFullYear();
   const count = await tx.invoice.count({
     where: {
+      organizationId,
       createdAt: {
         gte: new Date(`${year}-01-01`),
       }

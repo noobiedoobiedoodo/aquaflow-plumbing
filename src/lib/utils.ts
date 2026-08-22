@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { v4 as uuidv4 } from 'uuid';
+import { randomUUID, randomBytes } from 'crypto';
 
 /**
  * Merge Tailwind CSS classes with conflict resolution.
@@ -15,45 +16,39 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function generateId(prefix: string = 'PL'): string {
   const year = new Date().getFullYear();
-  const randomChars = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const randomChars = randomBytes(4).toString('hex').toUpperCase();
   return `${prefix}-${year}-${randomChars}`;
 }
 
 /**
  * Generate a human-readable appointment number.
- * Format: PL-YYYY-NNNNNN (e.g., PL-2026-000184)
- * The numeric suffix is random to avoid sequential guessing.
+ * Format: PL-YYYY-XXXXXXXX (e.g., PL-2026-A3F8B2C1)
+ * Uses crypto-random hex suffix to avoid birthday-paradox collisions.
  */
 export function generateAppointmentNumber(): string {
   const year = new Date().getFullYear();
-  const num = Math.floor(Math.random() * 999999)
-    .toString()
-    .padStart(6, '0');
-  return `PL-${year}-${num}`;
+  const hex = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  return `PL-${year}-${hex}`;
 }
 
 /**
  * Generate a human-readable quote number.
- * Format: QT-YYYY-NNNNNN
+ * Format: QT-YYYY-XXXXXXXX
  */
 export function generateQuoteNumber(): string {
   const year = new Date().getFullYear();
-  const num = Math.floor(Math.random() * 999999)
-    .toString()
-    .padStart(6, '0');
-  return `QT-${year}-${num}`;
+  const hex = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  return `QT-${year}-${hex}`;
 }
 
 /**
  * Generate a human-readable invoice number.
- * Format: INV-YYYY-NNNNNN
+ * Format: INV-YYYY-XXXXXXXX
  */
 export function generateInvoiceNumber(): string {
   const year = new Date().getFullYear();
-  const num = Math.floor(Math.random() * 999999)
-    .toString()
-    .padStart(6, '0');
-  return `INV-${year}-${num}`;
+  const hex = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  return `INV-${year}-${hex}`;
 }
 
 /**

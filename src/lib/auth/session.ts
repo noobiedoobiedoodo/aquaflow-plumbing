@@ -3,13 +3,14 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { generateToken } from '@/lib/utils';
 import { Role } from '@/lib/constants';
-import { createHash } from 'crypto';
+import { createHmac } from 'crypto';
 
 const SESSION_COOKIE_NAME = 'plumber-session';
 const SESSION_MAX_AGE_DAYS = Number(process.env.SESSION_MAX_AGE_DAYS) || 30;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production-min-32-chars-long';
 
 export function hashSessionToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+  return createHmac('sha256', SESSION_SECRET).update(token).digest('hex');
 }
 
 /**

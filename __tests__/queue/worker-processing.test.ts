@@ -6,11 +6,12 @@ import { processNotification } from '@/workers/notification-sender';
 import { Job } from 'bullmq';
 
 describe('BullMQ Worker Lifecycle & Processing Verification Suite', () => {
-  const testId = randomUUID().slice(0, 8);
+  let testId: string;
   let orgId: string;
   let userId: string;
 
   beforeEach(async () => {
+    testId = randomUUID().slice(0, 8);
     const org = await prisma.organization.create({
       data: { name: `Worker Test Org ${testId}`, slug: `worker-org-${testId}` },
     });
@@ -28,10 +29,12 @@ describe('BullMQ Worker Lifecycle & Processing Verification Suite', () => {
   });
 
   afterEach(async () => {
-    await prisma.notification.deleteMany({ where: { organizationId: orgId } });
-    await prisma.event.deleteMany({ where: { organizationId: orgId } });
-    await prisma.user.deleteMany({ where: { id: userId } });
-    await prisma.organization.deleteMany({ where: { id: orgId } });
+    if (orgId) {
+      await prisma.notification.deleteMany({ where: { organizationId: orgId } });
+      await prisma.event.deleteMany({ where: { organizationId: orgId } });
+      await prisma.user.deleteMany({ where: { id: userId } });
+      await prisma.organization.deleteMany({ where: { id: orgId } });
+    }
   });
 
   it('Event Worker: Enqueue -> Process -> Status COMPLETED', async () => {

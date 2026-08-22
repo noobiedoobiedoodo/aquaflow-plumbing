@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateToken } from '@/lib/utils';
 import { forgotPasswordSchema } from '@/lib/validation/auth.schema';
+import { RateLimiter, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 export async function POST(request: Request) {
   try {
+    const ip = await RateLimiter.getClientIp(request);
     const body = await request.json();
     const result = forgotPasswordSchema.safeParse(body);
 
@@ -16,6 +18,15 @@ export async function POST(request: Request) {
     }
 
     const { email } = result.data;
+
+    // Rate Limiting (IP + Email)
+    const isAllowed = await RateLimiter.checkMulti([ip, email.toLowerCase()], RATE_LIMITS.LOGIN);
+    if (!isAllowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },

@@ -7,6 +7,8 @@ import { getAbsoluteServerUrl } from '@/lib/config/url';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { emailSchema } from '@/lib/validation/common.schema';
+import { RateLimiter, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { headers } from 'next/headers';
 
 const CustomerLoginSchema = z.object({
   email: emailSchema,
@@ -36,6 +38,28 @@ export async function loginCustomerWithPassword(params: {
   }
 
   const { email, password, slug } = parsed.data;
+
+  // Rate limiting (IP + Tenant + Email)
+  try {
+    let clientIp = '127.0.0.1';
+    try {
+      const headerStore = await headers();
+      clientIp = headerStore.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    } catch {
+      // Test or offline context
+    }
+
+    const isAllowed = await RateLimiter.checkMulti(
+      [clientIp, `custlogin:${slug.toLowerCase()}:${email.toLowerCase().trim()}`],
+      RATE_LIMITS.LOGIN
+    );
+
+    if (!isAllowed) {
+      return { success: false, error: 'Too many failed attempts. Please try again later.' };
+    }
+  } catch (err) {
+    // Fail-closed handled inside RateLimiter if in production
+  }
 
   try {
     // 1. Resolve Organization strictly from route slug
@@ -165,6 +189,28 @@ export async function requestCustomerPasswordReset(params: {
 
   if (!email || !slug) return genericSuccess;
 
+  // Rate Limiting (IP + Tenant + Email)
+  try {
+    let clientIp = '127.0.0.1';
+    try {
+      const headerStore = await headers();
+      clientIp = headerStore.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    } catch {
+      // Test or offline context
+    }
+
+    const isAllowed = await RateLimiter.checkMulti(
+      [clientIp, `reset:${slug.toLowerCase()}:${email.toLowerCase().trim()}`],
+      RATE_LIMITS.LOGIN
+    );
+
+    if (!isAllowed) {
+      return genericSuccess; // Non-enumerating fail closed
+    }
+  } catch {
+    // Continue
+  }
+
   try {
     const org = await prisma.organization.findUnique({
       where: { slug: slug.toLowerCase() },
@@ -260,6 +306,15 @@ export async function updateCustomerPasswordFromProfile(formData: FormData) {
         passwordHash,
         passwordSetAt: new Date(),
       },
+    });
+
+    // Revoke old sessions upon password change for security
+    await prisma.customerSession.updateMany({
+      where: {
+        customerId: session.customer.id,
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
     });
 
     return { success: true };

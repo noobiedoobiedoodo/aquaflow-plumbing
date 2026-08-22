@@ -47,10 +47,14 @@ describe('Fail-Closed Production Environment Validation Suite', () => {
       STRIPE_SECRET_KEY: 'sk_test_51MockLiveValidKeyForDeployment12345',
       STRIPE_WEBHOOK_SECRET: 'whsec_valid_webhook_secret_key_12345',
       REDIS_URL: 'redis://prod-redis:6379',
+      AWS_S3_BUCKET_NAME: 'aquaflow-production-files',
+      AWS_ACCESS_KEY_ID: 'AKIA_VALID_PRODUCTION_KEY_ID_123',
+      AWS_SECRET_ACCESS_KEY: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     };
 
     const validated = validateEnvironment(validProdEnv);
     expect(validated.NODE_ENV).toBe('production');
     expect(validated.STRIPE_SECRET_KEY).toBe('sk_test_51MockLiveValidKeyForDeployment12345');
+    expect(validated.AWS_S3_BUCKET_NAME).toBe('aquaflow-production-files');
   });
 });

@@ -82,8 +82,10 @@ export function validateEnvironment(envObj: Record<string, string | undefined> =
       productionErrors.push('REDIS_URL is required in production for background workers and rate limiting.');
     }
 
-    // 5. Storage validation (if S3 bucket is defined)
-    if (env.AWS_S3_BUCKET_NAME) {
+    // 5. Storage validation (S3 / Object Storage is strictly required in production)
+    if (!env.AWS_S3_BUCKET_NAME) {
+      productionErrors.push('AWS_S3_BUCKET_NAME is required in production. Local disk fallback is forbidden.');
+    } else {
       if (!env.AWS_ACCESS_KEY_ID && !process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI) {
         productionErrors.push('AWS_ACCESS_KEY_ID is required when AWS_S3_BUCKET_NAME is configured.');
       }

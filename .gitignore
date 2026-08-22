@@ -45,3 +45,11 @@ next-env.d.ts
 scratch/
 storage/
 reports/
+
+# development databases
+dev.db
+prisma/dev.db
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

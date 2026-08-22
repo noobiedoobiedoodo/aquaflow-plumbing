@@ -7,14 +7,19 @@ const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET;
 
 export async function POST(req: Request) {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (!RESEND_WEBHOOK_SECRET && isProduction) {
+      console.error('RESEND_WEBHOOK_SECRET is not configured in production.');
+      return new NextResponse('Webhook secret misconfigured', { status: 500 });
+    }
+
     const payloadString = await req.text();
-    const headerPayload = await headers();
     
     // 1. Verify cryptographic signature
     if (RESEND_WEBHOOK_SECRET) {
-      const svix_id = headerPayload.get("svix-id");
-      const svix_timestamp = headerPayload.get("svix-timestamp");
-      const svix_signature = headerPayload.get("svix-signature");
+      const svix_id = req.headers.get("svix-id");
+      const svix_timestamp = req.headers.get("svix-timestamp");
+      const svix_signature = req.headers.get("svix-signature");
 
       if (!svix_id || !svix_timestamp || !svix_signature) {
         return new NextResponse('Missing svix headers', { status: 401 });
@@ -63,7 +68,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Resend Webhook Error:', error);
-    // Return 200 so Resend doesn't keep retrying if it's our internal parsing error
-    return NextResponse.json({ received: true });
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

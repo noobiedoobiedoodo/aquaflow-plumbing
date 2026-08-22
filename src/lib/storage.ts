@@ -218,6 +218,12 @@ export function getStorageProvider(): FileStorageProvider {
   if (process.env.AWS_S3_BUCKET_NAME) {
     return new S3FileStorageProvider();
   }
+  const isNextBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+  if (process.env.NODE_ENV === 'production' && !isNextBuildPhase) {
+    throw new Error(
+      '[Storage Configuration Error]: AWS_S3_BUCKET_NAME is required in production. Local disk storage fallback is forbidden.'
+    );
+  }
   return new LocalFileStorageProvider();
 }
 

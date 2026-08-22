@@ -106,7 +106,7 @@ describe('Plumber Signup & Tenant Provisioning Forensic Audit Suite', () => {
       expect(result.success).toBe(true);
       expect(result.slug).toBeDefined();
       provisionedSlug = result.slug!;
-      expect(provisionedSlug).toMatch(new RegExp(`^precision-plumbing-${testRunId}-\\d{4}$`));
+      expect(provisionedSlug).toMatch(new RegExp(`^precision-plumbing-${testRunId}-[a-f0-9]{4,8}$`));
     });
 
     it('prevents duplicate registration with the same email', async () => {

@@ -1,13 +1,14 @@
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes, createHmac } from 'crypto';
 import { redirect } from 'next/navigation';
 
 const CUSTOMER_SESSION_COOKIE = 'customer_session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production-min-32-chars-long';
 
 export function hashToken(token: string) {
-  return createHash('sha256').update(token).digest('hex');
+  return createHmac('sha256', SESSION_SECRET).update(token).digest('hex');
 }
 
 export async function createCustomerSession(customerId: string) {

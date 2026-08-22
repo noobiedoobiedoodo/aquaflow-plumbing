@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-08-22T19:15:00Z",
+  "roleDefinitions": {
+    "SUPER_ADMIN": "Full organizational control, billing management, staff management, and system configuration.",
+    "ADMIN": "Day-to-day organizational management, dispatching, invoices, customer management, staff management (except creating SUPER_ADMIN).",
+    "DISPATCHER": "Operations management, job scheduling, dispatching, technician schedule viewing, customer communications.",
+    "TECHNICIAN": "Field operations, time clocking, parts recording, photo uploading, customer signature capture on assigned jobs.",
+    "CUSTOMER": "Self-service portal access scoped strictly to own property, jobs, estimates, and invoices.",
+    "PUBLIC_WITH_TOKEN": "Unauthenticated principal possessing a cryptographically strong, scoped, single-use or capability token (e.g. invoice payment token, magic-link token, password reset token).",
+    "PUBLIC": "Unauthenticated external user with no privileged permissions (e.g. booking wizard, public landing page, login page)."
+  },
+  "roleGroups": {
+    "ADMIN_ROLES": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+    "TECH_ROLES": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "TECHNICIAN"]
+  },
+  "matrix": {
+    "organization": {
+      "viewProfile": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "updateProfile": ["SUPER_ADMIN", "ADMIN"],
+      "manageBilling": ["SUPER_ADMIN", "ADMIN"],
+      "connectStripe": ["SUPER_ADMIN", "ADMIN"],
+      "deleteOrganization": ["SUPER_ADMIN"]
+    },
+    "staff": {
+      "viewStaff": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "createDispatcher": ["SUPER_ADMIN", "ADMIN"],
+      "createAdmin": ["SUPER_ADMIN", "ADMIN"],
+      "createSuperAdmin": ["SUPER_ADMIN"],
+      "deactivateStaff": ["SUPER_ADMIN", "ADMIN"]
+    },
+    "technicians": {
+      "viewTechnicians": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "createTechnician": ["SUPER_ADMIN", "ADMIN"],
+      "updateTechnician": ["SUPER_ADMIN", "ADMIN"],
+      "viewAllSchedules": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "viewOwnSchedule": ["TECHNICIAN"],
+      "toggleAvailabilityAdmin": ["SUPER_ADMIN", "ADMIN"],
+      "toggleOwnAvailability": ["TECHNICIAN"]
+    },
+    "customers": {
+      "viewCustomerList": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "createCustomer": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "updateCustomer": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "viewOwnProfile": ["CUSTOMER"],
+      "updateOwnProfile": ["CUSTOMER"]
+    },
+    "jobs": {
+      "viewAllJobs": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "createJob": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "assignJob": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "viewAssignedJob": ["TECHNICIAN"],
+      "updateJobStatus": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "TECHNICIAN"],
+      "viewOwnJob": ["CUSTOMER"],
+      "cancelJob": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"]
+    },
+    "jobAttachments": {
+      "uploadPhoto": ["SUPER_ADMIN", "ADMIN", "TECHNICIAN"],
+      "deletePhoto": ["SUPER_ADMIN", "ADMIN", "TECHNICIAN"],
+      "captureSignature": ["SUPER_ADMIN", "ADMIN", "TECHNICIAN"],
+      "viewCustomerVisiblePhotos": ["CUSTOMER"],
+      "viewInternalNotes": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "TECHNICIAN"]
+    },
+    "timeClock": {
+      "clockInOut": ["TECHNICIAN"],
+      "viewTimeEntries": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "editTimeEntries": ["SUPER_ADMIN", "ADMIN"]
+    },
+    "estimates": {
+      "createEstimate": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"],
+      "viewEstimate": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "CUSTOMER"],
+      "approveEstimate": ["CUSTOMER", "SUPER_ADMIN", "ADMIN"],
+      "rejectEstimate": ["CUSTOMER", "SUPER_ADMIN", "ADMIN"]
+    },
+    "invoices": {
+      "generateInvoice": ["SUPER_ADMIN", "ADMIN"],
+      "viewInvoice": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "CUSTOMER", "PUBLIC_WITH_TOKEN"],
+      "updateInvoiceStatus": ["SUPER_ADMIN", "ADMIN"],
+      "payInvoice": ["CUSTOMER", "PUBLIC_WITH_TOKEN"]
+    },
+    "realtime": {
+      "subscribeEvents": ["SUPER_ADMIN", "ADMIN", "DISPATCHER"]
+    },
+    "auditLogs": {
+      "viewAuditLogs": ["SUPER_ADMIN", "ADMIN"]
+    },
+    "files": {
+      "downloadFile": ["SUPER_ADMIN", "ADMIN", "DISPATCHER", "ASSIGNED_TECHNICIAN", "OWNER_CUSTOMER"]
+    }
+  }
+}

@@ -117,7 +117,7 @@ const CreateStaffSchema = z.object({
 
 export async function createStaffMemberManual(formData: FormData) {
   try {
-    const { organizationId } = await requireRoleInOrg(['SUPER_ADMIN', 'ADMIN']);
+    const { organizationId, user: actor } = await requireRoleInOrg(['SUPER_ADMIN', 'ADMIN']);
 
     const raw = {
       firstName: formData.get('firstName') as string,
@@ -130,6 +130,12 @@ export async function createStaffMemberManual(formData: FormData) {
     const parsed = CreateStaffSchema.safeParse(raw);
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0]?.message || 'Validation failed' };
+    }
+
+    // Privilege escalation guard: only SUPER_ADMIN can create SUPER_ADMIN
+    const actorRole = actor.memberships.find(m => m.organizationId === organizationId)?.role;
+    if (parsed.data.role === 'SUPER_ADMIN' && actorRole !== 'SUPER_ADMIN') {
+      return { success: false, error: 'Only a Super Admin can create another Super Admin.' };
     }
 
     const { firstName, lastName, email, password, role } = parsed.data;

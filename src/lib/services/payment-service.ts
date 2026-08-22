@@ -24,11 +24,19 @@ export class PaymentService {
         }
       });
 
+      const newAmountPaid = Number((invoice.amountPaid + amountPaid).toFixed(2));
+      let newStatus = invoice.status;
+      if (newAmountPaid >= invoice.total) {
+        newStatus = 'PAID';
+      } else if (newAmountPaid > 0) {
+        newStatus = 'PARTIALLY_PAID';
+      }
+
       const updatedInvoice = await tx.invoice.update({
         where: { id: invoiceId },
         data: {
-          status: 'PAID',
-          amountPaid: { increment: amountPaid }
+          status: newStatus,
+          amountPaid: newAmountPaid,
         }
       });
 

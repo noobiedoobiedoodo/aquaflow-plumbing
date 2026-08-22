@@ -572,11 +572,11 @@ describe('Public Customer Acquisition & Booking Wizard Forensic Audit', () => {
   // 4. POST /api/booking EXECUTION, NORMALIZATION & CONFIRMATION AUDIT
   // =========================================================================
   describe('4. POST /api/booking Execution & Confirmation Screen Verification', () => {
-    it('generates appointment numbers matching PL-YYYY-NNNNNN format', () => {
+    it('generates appointment numbers matching PL-YYYY-XXXXXXXX format', () => {
       const currentYear = new Date().getFullYear();
       for (let i = 0; i < 10; i++) {
         const aptNum = generateAppointmentNumber();
-        expect(aptNum).toMatch(new RegExp(`^PL-${currentYear}-\\d{6}$`));
+        expect(aptNum).toMatch(new RegExp(`^PL-${currentYear}-[A-F0-9]{8}$`));
       }
     });
 
@@ -630,7 +630,7 @@ describe('Public Customer Acquisition & Booking Wizard Forensic Audit', () => {
 
       const data = await res.json();
       expect(data.success).toBe(true);
-      expect(data.appointmentNumber).toMatch(/^PL-\d{4}-\d{6}$/);
+      expect(data.appointmentNumber).toMatch(/^PL-\d{4}-[A-F0-9]{8}$/);
 
       // Verify DB User Creation
       const createdUser = await prisma.user.findUnique({

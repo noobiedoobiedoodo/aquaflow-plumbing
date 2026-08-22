@@ -1,65 +1,28 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { hashPassword } from '@/lib/auth/password';
-import { createSession, setSessionCookie } from '@/lib/auth/session';
-import { registerSchema } from '@/lib/validation/auth.schema';
+import { RateLimiter, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
+/**
+ * Direct unassociated registration is disabled to prevent orphan account creation and database pollution.
+ * Users must either register a tenant via /actions/onboarding or be invited to an existing organization.
+ */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const result = registerSchema.safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: result.error.format() },
-        { status: 400 }
-      );
+    const ip = await RateLimiter.getClientIp(request);
+    
+    // Rate limiting to mitigate spam/probing
+    const isAllowed = await RateLimiter.check(ip, RATE_LIMITS.LOGIN);
+    if (!isAllowed) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { email, password, firstName, lastName, phone } = result.data;
-
-    // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 409 }
-      );
-    }
-
-    // Hash password
-    const passwordHash = await hashPassword(password);
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        firstName,
-        lastName,
-        phone,
+    return NextResponse.json(
+      { 
+        error: 'Direct user registration is disabled. Please sign up your company at /signup or use an organization invitation.' 
       },
-    });
-
-    // Extract IP and User-Agent
-    const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-
-    // Create session
-    const token = await createSession(user.id, ipAddress, userAgent);
-
-    // Set cookie
-    await setSessionCookie(token);
-
-    // Return user without password
-    const { passwordHash: _, ...safeUser } = user;
-
-    return NextResponse.json(safeUser, { status: 201 });
+      { status: 403 }
+    );
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration endpoint error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

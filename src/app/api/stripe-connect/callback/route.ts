@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/session';
+import { requireRoleInOrg } from '@/lib/auth/session';
+import { ADMIN_ROLES } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 
@@ -8,18 +9,15 @@ export async function GET(req: Request) {
   const baseUrl = await getServerBaseUrl();
 
   try {
-    const { user } = await requireAuth();
+    const { user, organizationId } = await requireRoleInOrg(ADMIN_ROLES);
 
-    const membership = await prisma.organizationMember.findFirst({
-      where: { userId: user.id },
-      include: { organization: true },
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
     });
 
-    if (!membership) {
-      return NextResponse.redirect(`${baseUrl}/login`);
+    if (!org) {
+      return NextResponse.redirect(`${baseUrl}/onboarding`);
     }
-
-    const org = membership.organization;
 
     if (!org.stripeAccountId) {
       return NextResponse.redirect(`${baseUrl}/onboarding`);

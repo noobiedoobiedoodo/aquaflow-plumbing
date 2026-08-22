@@ -7,13 +7,18 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 
 export async function POST(req: Request) {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (!TWILIO_AUTH_TOKEN && isProduction) {
+      console.error('TWILIO_AUTH_TOKEN is not configured in production.');
+      return new NextResponse('Webhook secret misconfigured', { status: 500 });
+    }
+
     const textData = await req.text();
     const params = new URLSearchParams(textData);
-    const headerPayload = await headers();
 
     // 1. Verify cryptographic signature
     if (TWILIO_AUTH_TOKEN) {
-      const twilioSignature = headerPayload.get('x-twilio-signature');
+      const twilioSignature = req.headers.get('x-twilio-signature');
       
       if (!twilioSignature) {
         return new NextResponse('Missing twilio signature', { status: 401 });
@@ -62,14 +67,11 @@ export async function POST(req: Request) {
       });
     }
 
-    // Twilio expects XML response for TwiML, but for status callbacks a 200 OK empty or small response is fine.
     return new NextResponse('<Response></Response>', {
       headers: { 'Content-Type': 'text/xml' }
     });
   } catch (error) {
     console.error('Twilio Webhook Error:', error);
-    return new NextResponse('<Response></Response>', {
-      headers: { 'Content-Type': 'text/xml' }
-    });
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

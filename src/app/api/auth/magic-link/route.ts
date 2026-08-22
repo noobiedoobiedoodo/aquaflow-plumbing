@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { email, organizationSlug } = await req.json();
     if (!email) return new NextResponse('Email is required', { status: 400 });
 
-    const ip = await RateLimiter.getClientIp();
+    const ip = await RateLimiter.getClientIp(req);
     
     // Rate Limiting
     const isAllowed = await RateLimiter.checkMulti([ip, email.toLowerCase()], RATE_LIMITS.LOGIN);

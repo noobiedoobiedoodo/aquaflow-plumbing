@@ -5,8 +5,9 @@ import { hashPassword } from '@/lib/auth/password';
 import { createSession, setSessionCookie } from '@/lib/auth/session';
 import { z } from 'zod';
 import { ROLES, DEFAULT_SERVICES } from '@/lib/constants';
-
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
+import { RateLimiter, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { headers } from 'next/headers';
 
 const SignupSchema = z.object({
   companyName: z.string().min(2, 'Company name is required').max(100),
@@ -28,21 +29,37 @@ export async function registerTenant(formData: FormData) {
     const data = validated.data;
     const cleanEmail = data.email.toLowerCase().trim();
 
-    // Check if user already exists
+    // 1. Abuse Protection & Rate Limiting (IP + Email)
+    try {
+      let clientIp = '127.0.0.1';
+      try {
+        const headerStore = await headers();
+        clientIp = headerStore.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+      } catch {
+        // Test context
+      }
+
+      const isAllowed = await RateLimiter.checkMulti(
+        [clientIp, `signup:${cleanEmail}`],
+        RATE_LIMITS.BOOKING // 10 per hour limit for tenant provisioning
+      );
+
+      if (!isAllowed) {
+        return { success: false, error: 'Too many signup attempts. Please try again later.' };
+      }
+    } catch {
+      // Continue if in dev
+    }
+
+    // 2. Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existingUser) {
       return { success: false, error: 'An account with this email already exists' };
     }
 
     const baseSlug = data.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    let slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-    let attempts = 0;
-    while (attempts < 10) {
-      const existingOrg = await prisma.organization.findUnique({ where: { slug } });
-      if (!existingOrg) break;
-      slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-      attempts++;
-    }
+    const entropy = randomBytes(3).toString('hex');
+    const slug = `${baseSlug}-${entropy}`;
 
     // Execute within an atomic transaction
     const result = await prisma.$transaction(async (tx) => {

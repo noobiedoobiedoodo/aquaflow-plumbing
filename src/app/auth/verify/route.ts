@@ -46,36 +46,45 @@ export async function GET(req: Request) {
   }
 
   const customerId = customerRecord.id;
+  const destination = !magicLink.user.passwordSetAt ? '/portal/setup-password' : '/portal/dashboard';
 
-  // 1. Atomic token consumption (prevents concurrent replay race conditions)
-  const updatedToken = await prisma.magicLinkToken.updateMany({
-    where: { id: magicLink.id, usedAt: null },
-    data: { usedAt: new Date() }
-  });
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Atomic token consumption (prevents concurrent replay race conditions)
+      const updatedToken = await tx.magicLinkToken.updateMany({
+        where: { id: magicLink.id, usedAt: null, expiresAt: { gt: new Date() } },
+        data: { usedAt: new Date() }
+      });
 
-  if (updatedToken.count === 0) {
-    return new NextResponse('This link has already been used.', { status: 400 });
-  }
+      if (updatedToken.count === 0) {
+        throw new Error('TOKEN_ALREADY_USED_OR_EXPIRED');
+      }
 
-  // 2. Mark email as verified if not already
-  if (!magicLink.user.emailVerified) {
-    await prisma.user.update({
-      where: { id: magicLink.user.id },
-      data: { emailVerified: true }
+      // 2. Mark email as verified if not already
+      if (!magicLink.user.emailVerified) {
+        await tx.user.update({
+          where: { id: magicLink.user.id },
+          data: { emailVerified: true }
+        });
+      }
+
+      if (customerRecord && !customerRecord.emailVerifiedAt) {
+        await tx.customer.update({
+          where: { id: customerId },
+          data: { emailVerifiedAt: new Date() },
+        });
+      }
     });
-  }
-
-  if (customerRecord && !customerRecord.emailVerifiedAt) {
-    await prisma.customer.update({
-      where: { id: customerId },
-      data: { emailVerifiedAt: new Date() },
-    });
+  } catch (err: any) {
+    if (err.message === 'TOKEN_ALREADY_USED_OR_EXPIRED') {
+      return new NextResponse('This link has already been used or has expired.', { status: 400 });
+    }
+    throw err;
   }
 
   // 3. Create Session and Cookie
   await createCustomerSession(customerId);
 
   // 4. Redirect: If customer has not established a password yet, guide to setup-password; else dashboard
-  const destination = !magicLink.user.passwordSetAt ? '/portal/setup-password' : '/portal/dashboard';
   return NextResponse.redirect(new URL(destination, req.url));
 }

@@ -3,9 +3,11 @@ import { prisma } from '@/lib/db';
 import { hashPassword } from '@/lib/auth/password';
 import { revokeAllUserSessions } from '@/lib/auth/session';
 import { resetPasswordSchema } from '@/lib/validation/auth.schema';
+import { RateLimiter, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 export async function POST(request: Request) {
   try {
+    const ip = await RateLimiter.getClientIp(request);
     const body = await request.json();
     const result = resetPasswordSchema.safeParse(body);
 
@@ -13,6 +15,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Validation failed', details: result.error.format() },
         { status: 400 }
+      );
+    }
+
+    // Rate Limiting
+    const isAllowed = await RateLimiter.check(ip, RATE_LIMITS.LOGIN);
+    if (!isAllowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
       );
     }
 
