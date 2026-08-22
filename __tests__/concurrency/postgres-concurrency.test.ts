@@ -166,8 +166,8 @@ describe('PostgreSQL Concurrency & Atomic Claiming Suite', () => {
   });
 
   test('Outbox Atomic Concurrency: Multiple concurrent workers claim disjoint sets of pending events with FOR UPDATE SKIP LOCKED', async () => {
-    // Clear all existing events in database so the 30 events are the only ones
-    await prisma.event.deleteMany({});
+    // Clear existing events for this org
+    await prisma.event.deleteMany({ where: { organizationId: orgId } });
 
     // Create 30 pending events
     const eventData = Array.from({ length: 30 }).map((_, i) => ({

@@ -10,6 +10,12 @@ interface PendingEventRow {
 }
 
 export async function claimAndDispatchPendingEvents(batchSize = 50): Promise<number> {
+  // If BullMQ / Redis queue is not available, do not claim events.
+  // Events safely remain PENDING in PostgreSQL outbox until Redis recovers.
+  if (!eventsQueue) {
+    return 0;
+  }
+
   try {
     const claimedCount = await prisma.$transaction(async (tx) => {
       // Concurrency-safe atomic claim using PostgreSQL row locking with SKIP LOCKED
@@ -49,26 +55,9 @@ export async function claimAndDispatchPendingEvents(batchSize = 50): Promise<num
         try {
           await eventsQueue.addBulk(jobs);
         } catch (queueErr) {
-          Logger.warn('Queue dispatch failed, events remain in PROCESSING for worker retry or inline delivery', {
+          Logger.warn('Queue dispatch failed, events remain in PROCESSING for BullMQ worker retry when Redis recovers', {
             operation: 'outbox.queue_fallback',
           });
-        }
-      } else {
-        // Fallback: If Redis is unconfigured or offline, process events directly
-        const { processEvent } = await import('./event-processor');
-        for (const job of jobs) {
-          try {
-            await processEvent({
-              name: job.name,
-              data: job.data,
-              opts: job.opts,
-              attemptsMade: 1,
-            } as any);
-          } catch (inlineErr) {
-            Logger.error(`Inline event processing failed for ${job.data.eventId}`, inlineErr, {
-              operation: 'outbox.inline_fallback_error',
-            });
-          }
         }
       }
 
