@@ -53,6 +53,23 @@ export async function claimAndDispatchPendingEvents(batchSize = 50): Promise<num
             operation: 'outbox.queue_fallback',
           });
         }
+      } else {
+        // Fallback: If Redis is unconfigured or offline, process events directly
+        const { processEvent } = await import('./event-processor');
+        for (const job of jobs) {
+          try {
+            await processEvent({
+              name: job.name,
+              data: job.data,
+              opts: job.opts,
+              attemptsMade: 1,
+            } as any);
+          } catch (inlineErr) {
+            Logger.error(`Inline event processing failed for ${job.data.eventId}`, inlineErr, {
+              operation: 'outbox.inline_fallback_error',
+            });
+          }
+        }
       }
 
       return claimedEvents.length;
