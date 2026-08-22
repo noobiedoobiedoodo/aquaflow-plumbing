@@ -1,0 +1,14 @@
+services:
+  - type: worker
+    name: aquaflow-worker
+    runtime: node
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm run worker
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false

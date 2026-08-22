@@ -20,6 +20,16 @@ export async function processEvent(job: Job<EventQueueJobData>) {
 
   if (!event) throw new Error(`Event ${eventId} not found`);
 
+  // Idempotency check: if already COMPLETED, acknowledge and skip duplicate execution
+  if (event.status === 'COMPLETED') {
+    Logger.info(`Event ${eventId} already COMPLETED. Skipping duplicate execution.`, {
+      operation: 'event.duplicate_skipped',
+      organizationId: event.organizationId,
+      metadata: { eventId },
+    });
+    return;
+  }
+
   try {
     // Execute Automation Rules Engine
     await AutomationRulesEngine.evaluateEvent(event.id);
