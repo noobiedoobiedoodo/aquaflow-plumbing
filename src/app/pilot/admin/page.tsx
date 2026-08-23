@@ -117,6 +117,8 @@ export default function PilotAdminDashboard() {
   const [scrapeNotification, setScrapeNotification] = useState<string | null>(null);
   const [interestFilter, setInterestFilter] = useState<string>('ALL');
   const [outreachFilter, setOutreachFilter] = useState<string>('ALL');
+  const [isSendingCampaign, setIsSendingCampaign] = useState(false);
+  const [sendingSingleId, setSendingSingleId] = useState<string | null>(null);
 
   // Shared State
   const [loading, setLoading] = useState(true);
@@ -280,6 +282,77 @@ export default function PilotAdminDashboard() {
       alert('Error running scraper engine');
     } finally {
       setIsScraping(false);
+    }
+  };
+
+  // Launch Automated Bulk Outreach Campaign
+  const handleLaunchCampaign = async () => {
+    const uncontactedCount = prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length;
+    if (uncontactedCount === 0) {
+      alert('No uncontacted prospects found to email. Run the Scraper first to add new leads!');
+      return;
+    }
+
+    if (!confirm(`🚀 Launch automated cold outreach campaign to ${Math.min(uncontactedCount, scrapingLimit)} plumbing contractors via Resend?`)) {
+      return;
+    }
+
+    setIsSendingCampaign(true);
+    setScrapeNotification(null);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch('/api/pilot/outreach/campaign', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ stateFilter: scrapingState, limit: scrapingLimit }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProspects(data.prospects);
+        setScrapeNotification(`📨 Campaign Complete! Sent ${data.stats.sent} emails via Resend (${data.stats.failed} failed).`);
+        setTimeout(() => setScrapeNotification(null), 8000);
+      } else {
+        alert(`Campaign error: ${data.message}`);
+      }
+    } catch (err) {
+      console.error('Campaign error:', err);
+      alert('Error dispatching outreach campaign.');
+    } finally {
+      setIsSendingCampaign(false);
+    }
+  };
+
+  // Send Single Outreach Email
+  const handleSendSingleOutreach = async (prospect: ColdProspect) => {
+    setSendingSingleId(prospect.id);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch('/api/pilot/outreach/send', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ prospectId: prospect.id }),
+      });
+      const data = await res.json();
+      if (data.success && data.prospect) {
+        setProspects((prev) =>
+          prev.map((item) => (item.id === prospect.id ? data.prospect : item))
+        );
+        if (selectedProspect?.id === prospect.id) {
+          setSelectedProspect(data.prospect);
+        }
+        alert(`✅ Cold outreach email sent to ${prospect.companyName} (${prospect.email})!`);
+      } else {
+        alert(`Failed to send email: ${data.message}`);
+      }
+    } catch (err) {
+      console.error('Failed to send single outreach:', err);
+      alert('Error dispatching outreach email.');
+    } finally {
+      setSendingSingleId(null);
     }
   };
 
@@ -840,7 +913,18 @@ export default function PilotAdminDashboard() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   <Zap className={`w-4 h-4 ${isScraping ? 'animate-spin' : ''}`} />
-                  <span>{isScraping ? `Scraping ${scrapingLimit} Contractors...` : `⚡ Run Prospector (${scrapingLimit} Leads)`}</span>
+                  <span>{isScraping ? `Scraping ${scrapingLimit} Contractors...` : `⚡ 1. Scrape Leads (${scrapingLimit})`}</span>
+                </button>
+
+                {/* AUTOMATED OUTREACH CAMPAIGN BUTTON */}
+                <button
+                  onClick={handleLaunchCampaign}
+                  disabled={isSendingCampaign || prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length === 0}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
+                  title="Automatically dispatches personalized cold emails via Resend to uncontacted contractors"
+                >
+                  <Mail className={`w-4 h-4 ${isSendingCampaign ? 'animate-bounce' : ''}`} />
+                  <span>{isSendingCampaign ? 'Sending Campaign...' : `🚀 2. Auto-Send Emails (${prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length})`}</span>
                 </button>
               </div>
             </div>
@@ -1011,6 +1095,15 @@ export default function PilotAdminDashboard() {
                               >
                                 <Rocket className="w-3.5 h-3.5" />
                                 <span>{provisioningId === p.id ? 'Provisioning...' : p.outreachStatus === 'PROVISIONED' ? 'Provisioned' : 'Auto-Provision'}</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleSendSingleOutreach(p)}
+                                disabled={sendingSingleId === p.id}
+                                className="p-1.5 rounded-lg bg-blue-950/80 border border-blue-500/40 text-blue-400 hover:text-white hover:bg-blue-600 transition-all disabled:opacity-50"
+                                title="Send Cold Outreach Email via Resend"
+                              >
+                                <Mail className={`w-3.5 h-3.5 ${sendingSingleId === p.id ? 'animate-bounce' : ''}`} />
                               </button>
 
                               <button
