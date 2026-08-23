@@ -27,9 +27,15 @@ import {
   AlertTriangle,
   Rocket,
   Copy,
-  Check
+  Check,
+  Flame,
+  Snowflake,
+  Zap,
+  Globe,
+  Trash2
 } from 'lucide-react';
 import { PilotLeadRecord, PilotLeadStatus } from '@/lib/services/pilot-lead-service';
+import { ColdProspect, InterestLevel, OutreachStatus } from '@/lib/services/prospecting-service';
 
 const STATUS_COLORS: Record<PilotLeadStatus, string> = {
   NEW: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
@@ -52,6 +58,21 @@ const ALL_STATUSES: PilotLeadStatus[] = [
   'ONBOARDED',
   'DECLINED',
 ];
+
+const INTEREST_CONFIG: Record<InterestLevel, { label: string; bg: string; text: string; border: string; icon: string }> = {
+  GREEN: { label: 'Yes (High Interest)', bg: 'bg-emerald-950/40', text: 'text-emerald-300', border: 'border-emerald-500/40', icon: '🟢' },
+  YELLOW: { label: 'Undecided / Nurturing', bg: 'bg-amber-950/40', text: 'text-amber-300', border: 'border-amber-500/40', icon: '🟡' },
+  RED: { label: 'Hard No / Declined', bg: 'bg-red-950/40', text: 'text-red-400', border: 'border-red-500/40', icon: '🔴' },
+  UNDECIDED: { label: 'Unranked', bg: 'bg-slate-900', text: 'text-slate-400', border: 'border-slate-800', icon: '⚪' },
+};
+
+const OUTREACH_CONFIG: Record<OutreachStatus, { label: string; color: string }> = {
+  NOT_CONTACTED: { label: 'Not Contacted', color: 'bg-slate-800 text-slate-300 border-slate-700' },
+  EMAIL_SENT: { label: 'Email Sent', color: 'bg-blue-950/40 text-blue-300 border-blue-500/40' },
+  CALLED: { label: 'Called / Voicemail', color: 'bg-purple-950/40 text-purple-300 border-purple-500/40' },
+  IN_CONVERSATION: { label: 'In Conversation', color: 'bg-amber-950/40 text-amber-300 border-amber-500/40' },
+  PROVISIONED: { label: 'Provisioned', color: 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40' },
+};
 
 interface ProvisionResponse {
   success: boolean;
@@ -80,11 +101,25 @@ interface ProvisionResponse {
 }
 
 export default function PilotAdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'warm' | 'cold'>('warm');
+
+  // Warm Leads State
   const [leads, setLeads] = useState<PilotLeadRecord[]>([]);
+  const [selectedLead, setSelectedLead] = useState<PilotLeadRecord | null>(null);
+
+  // Cold Prospects State
+  const [prospects, setProspects] = useState<ColdProspect[]>([]);
+  const [selectedProspect, setSelectedProspect] = useState<ColdProspect | null>(null);
+  const [scrapingState, setScrapingState] = useState<string>('ALL');
+  const [isScraping, setIsScraping] = useState(false);
+  const [scrapeNotification, setScrapeNotification] = useState<string | null>(null);
+  const [interestFilter, setInterestFilter] = useState<string>('ALL');
+  const [outreachFilter, setOutreachFilter] = useState<string>('ALL');
+
+  // Shared State
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [selectedLead, setSelectedLead] = useState<PilotLeadRecord | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [provisioningId, setProvisioningId] = useState<string | null>(null);
   const [provisionResult, setProvisionResult] = useState<ProvisionResponse | null>(null);
@@ -99,29 +134,38 @@ export default function PilotAdminDashboard() {
     const storedKey = sessionStorage.getItem('aquaflow_pilot_key');
     if (storedKey) {
       setAdminKey(storedKey);
-      fetchLeadsWithKey(storedKey);
+      fetchDataWithKey(storedKey);
     } else {
-      // Try fetching using existing SaaS session cookie
-      fetchLeadsWithSession();
+      fetchDataWithSession();
     }
   }, []);
 
-  const fetchLeadsWithSession = async () => {
+  const fetchDataWithSession = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/pilot/leads');
-      if (res.ok) {
-        const data = await res.json();
+      const [leadsRes, prospectsRes] = await Promise.all([
+        fetch('/api/pilot/leads'),
+        fetch('/api/pilot/prospects')
+      ]);
+
+      if (leadsRes.ok) {
+        const data = await leadsRes.json();
         if (data.success && Array.isArray(data.leads)) {
           setLeads(data.leads);
           setIsAuthorized(true);
           setAuthMethod('session');
           setAuthError('');
-          return;
+        }
+      } else {
+        setIsAuthorized(false);
+      }
+
+      if (prospectsRes.ok) {
+        const pData = await prospectsRes.json();
+        if (pData.success && Array.isArray(pData.prospects)) {
+          setProspects(pData.prospects);
         }
       }
-      // If session not found/unauthorized, stay in lock state
-      setIsAuthorized(false);
     } catch {
       setIsAuthorized(false);
     } finally {
@@ -129,15 +173,18 @@ export default function PilotAdminDashboard() {
     }
   };
 
-  const fetchLeadsWithKey = async (key: string) => {
+  const fetchDataWithKey = async (key: string) => {
     setLoading(true);
     setAuthError('');
     try {
-      const res = await fetch('/api/pilot/leads', {
-        headers: { 'x-pilot-admin-key': key },
-      });
-      const data = await res.json();
-      if (res.ok && data.success && Array.isArray(data.leads)) {
+      const headers = { 'x-pilot-admin-key': key };
+      const [leadsRes, prospectsRes] = await Promise.all([
+        fetch('/api/pilot/leads', { headers }),
+        fetch('/api/pilot/prospects', { headers })
+      ]);
+
+      const data = await leadsRes.json();
+      if (leadsRes.ok && data.success && Array.isArray(data.leads)) {
         setLeads(data.leads);
         setIsAuthorized(true);
         setAuthMethod('key');
@@ -145,6 +192,13 @@ export default function PilotAdminDashboard() {
       } else {
         setIsAuthorized(false);
         setAuthError(data.message || 'Invalid administrator key. Access denied.');
+      }
+
+      if (prospectsRes.ok) {
+        const pData = await prospectsRes.json();
+        if (pData.success && Array.isArray(pData.prospects)) {
+          setProspects(pData.prospects);
+        }
       }
     } catch {
       setAuthError('Connection error verifying administrator credentials.');
@@ -160,7 +214,7 @@ export default function PilotAdminDashboard() {
       setAuthError('Please enter the server admin key.');
       return;
     }
-    fetchLeadsWithKey(adminKey.trim());
+    fetchDataWithKey(adminKey.trim());
   };
 
   const handleLogout = () => {
@@ -197,24 +251,118 @@ export default function PilotAdminDashboard() {
     }
   };
 
-  const handleAutoProvision = async (lead: PilotLeadRecord) => {
-    setProvisioningId(lead.id);
+  // Run Scraper / Prospector
+  const handleRunScraper = async () => {
+    setIsScraping(true);
+    setScrapeNotification(null);
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (adminKey) headers['x-pilot-admin-key'] = adminKey;
 
-      const res = await fetch(`/api/pilot/provision/${lead.id}`, {
+      const res = await fetch('/api/pilot/prospects', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ state: scrapingState }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProspects(data.prospects);
+        setScrapeNotification(`🎉 Imported ${data.added} target plumbing prospects! Total: ${data.total}`);
+        setTimeout(() => setScrapeNotification(null), 5000);
+      } else {
+        alert(`Scraping failed: ${data.message}`);
+      }
+    } catch (err) {
+      console.error('Scraper error:', err);
+      alert('Error running scraper engine');
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
+  // Update Cold Prospect Qualification
+  const handleUpdateProspect = async (
+    id: string,
+    update: { interestLevel?: InterestLevel; outreachStatus?: OutreachStatus; notes?: string }
+  ) => {
+    setUpdatingId(id);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch(`/api/pilot/prospects/${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(update),
+      });
+      const data = await res.json();
+      if (data.success && data.prospect) {
+        setProspects((prev) =>
+          prev.map((item) => (item.id === id ? data.prospect : item))
+        );
+        if (selectedProspect?.id === id) {
+          setSelectedProspect(data.prospect);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update prospect qualification:', err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  // Delete Prospect
+  const handleDeleteProspect = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to remove ${name} from cold prospects?`)) return;
+    try {
+      const headers: Record<string, string> = {};
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch(`/api/pilot/prospects/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        setProspects((prev) => prev.filter((p) => p.id !== id));
+        if (selectedProspect?.id === id) setSelectedProspect(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete prospect:', err);
+    }
+  };
+
+  // Auto Provision Company
+  const handleAutoProvision = async (item: { id: string; companyName: string }) => {
+    setProvisioningId(item.id);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch(`/api/pilot/provision/${item.id}`, {
         method: 'POST',
         headers,
       });
       const data: ProvisionResponse = await res.json();
       if (data.success) {
         setProvisionResult(data);
+        // Update state in either list
         setLeads((prev) =>
-          prev.map((item) => (item.id === lead.id ? { ...item, status: 'ONBOARDED' } : item))
+          prev.map((l) => (l.id === item.id ? { ...l, status: 'ONBOARDED' } : l))
         );
-        if (selectedLead?.id === lead.id) {
+        setProspects((prev) =>
+          prev.map((p) =>
+            p.id === item.id
+              ? { ...p, outreachStatus: 'PROVISIONED', interestLevel: 'GREEN' }
+              : p
+          )
+        );
+        if (selectedLead?.id === item.id) {
           setSelectedLead((prev) => (prev ? { ...prev, status: 'ONBOARDED' } : null));
+        }
+        if (selectedProspect?.id === item.id) {
+          setSelectedProspect((prev) =>
+            prev ? { ...prev, outreachStatus: 'PROVISIONED', interestLevel: 'GREEN' } : null
+          );
         }
       } else {
         alert(`Auto-provisioning failed: ${data.message}`);
@@ -227,62 +375,84 @@ export default function PilotAdminDashboard() {
     }
   };
 
-  const exportCSV = () => {
-    if (leads.length === 0) return;
-    const headers = [
-      'ID',
-      'Company Name',
-      'Contact Name',
-      'Email',
-      'Phone',
-      'City',
-      'Province',
-      'Technicians',
-      'Status',
-      'Source',
-      'UTM Campaign',
-      'Created At',
-    ];
-    const rows = leads.map((l) => [
-      l.id,
-      `"${l.companyName}"`,
-      `"${l.contactName}"`,
-      l.email,
-      l.phone,
-      `"${l.city}"`,
-      `"${l.province}"`,
-      `"${l.technicianCount}"`,
-      l.status,
-      l.source || 'direct',
-      l.utmCampaign || '',
-      l.createdAt,
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aquaflow-pilot-leads-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-  };
-
-  const filteredLeads = leads.filter((l) => {
-    const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
-    const q = searchTerm.toLowerCase();
+  // Filter Warm Leads
+  const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
-      l.companyName.toLowerCase().includes(q) ||
-      l.contactName.toLowerCase().includes(q) ||
-      l.email.toLowerCase().includes(q) ||
-      l.phone.toLowerCase().includes(q) ||
-      l.city.toLowerCase().includes(q);
-    return matchesStatus && matchesSearch;
+      lead.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.city.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'ALL' || lead.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  const countNew = leads.filter((l) => l.status === 'NEW').length;
-  const countApproved = leads.filter((l) => l.status === 'APPROVED' || l.status === 'ONBOARDED').length;
+  // Filter Cold Prospects
+  const filteredProspects = prospects.filter((p) => {
+    const matchesSearch =
+      p.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.state.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesInterest = interestFilter === 'ALL' || p.interestLevel === interestFilter;
+    const matchesOutreach = outreachFilter === 'ALL' || p.outreachStatus === outreachFilter;
+    return matchesSearch && matchesInterest && matchesOutreach;
+  });
 
-  if (!isAuthorized) {
+  const exportCSV = () => {
+    if (activeTab === 'warm') {
+      if (leads.length === 0) return;
+      const headers = ['ID', 'Company Name', 'Contact Name', 'Email', 'Phone', 'City', 'Province', 'Technicians', 'Status', 'Source', 'Created At'];
+      const rows = leads.map((l) => [
+        l.id,
+        `"${l.companyName}"`,
+        `"${l.contactName}"`,
+        l.email,
+        l.phone,
+        l.city,
+        l.province,
+        l.technicianCount,
+        l.status,
+        l.source || 'direct',
+        l.createdAt,
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `aquaflow-inbound-leads-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      if (prospects.length === 0) return;
+      const headers = ['ID', 'Company Name', 'Contact Name', 'Title', 'Email', 'Phone', 'City', 'State', 'Technicians', 'Interest Level', 'Outreach Status', 'Created At'];
+      const rows = prospects.map((p) => [
+        p.id,
+        `"${p.companyName}"`,
+        `"${p.contactName}"`,
+        p.title,
+        p.email,
+        p.phone,
+        p.city,
+        p.state,
+        p.technicianCount,
+        p.interestLevel,
+        p.outreachStatus,
+        p.createdAt,
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `aquaflow-cold-prospects-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  if (!isAuthorized && !loading) {
     return (
       <div className="min-h-screen bg-[#05080B] flex items-center justify-center p-4">
         <div className="max-w-md w-full glass rounded-3xl p-8 border border-cyan-500/30 shadow-2xl space-y-6">
@@ -355,31 +525,30 @@ export default function PilotAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05080B] text-slate-100 p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#06090E] text-slate-100 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+
         {/* TOP BAR */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
-            <div className="flex items-center gap-2">
-              <Link href="/pilot" className="text-xs font-semibold text-cyan-400 hover:underline flex items-center gap-1">
-                <ArrowLeft className="w-3.5 h-3.5" /> AquaFlow /pilot
-              </Link>
-              <span className="text-slate-600">•</span>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/40 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                Verified Admin ({authMethod === 'session' ? 'RBAC Session' : 'API Secret'})
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                SaaS Control Center
               </span>
+              <span className="text-xs text-slate-500">v2.4 Production</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-              Pilot Applications Console
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              AquaFlow Growth & Onboarding Portal
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => (adminKey ? fetchLeadsWithKey(adminKey) : fetchLeadsWithSession())}
-              disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold hover:border-cyan-500/50 transition-all disabled:opacity-50"
+              onClick={() => {
+                if (authMethod === 'key') fetchDataWithKey(adminKey);
+                else fetchDataWithSession();
+              }}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
@@ -387,7 +556,7 @@ export default function PilotAdminDashboard() {
 
             <button
               onClick={exportCSV}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 text-xs font-bold shadow-md hover:scale-[1.02] transition-all"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 transition-all"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
@@ -395,213 +564,442 @@ export default function PilotAdminDashboard() {
 
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-all"
-              title="Sign Out"
+              className="p-2 rounded-xl bg-red-950/20 text-red-400 border border-red-500/20 hover:bg-red-950/40 transition-all"
+              title="Lock Admin Console"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* METRICS ROW */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-xs font-medium text-slate-400">Total Applications</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">{leads.length}</div>
-            <span className="text-[11px] text-cyan-400">Neon cloud database</span>
-          </div>
+        {/* TABS NAVIGATION */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 max-w-xl">
+          <button
+            onClick={() => { setActiveTab('warm'); setSearchTerm(''); }}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === 'warm'
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Flame className="w-4 h-4" />
+            <span>Warm Inbound Leads (/pilot)</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+              activeTab === 'warm' ? 'bg-slate-950/40 text-slate-950' : 'bg-slate-800 text-cyan-400'
+            }`}>
+              {leads.length}
+            </span>
+          </button>
 
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-xs font-medium text-slate-400">Unreviewed (NEW)</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-cyan-400 mt-1">{countNew}</div>
-            <span className="text-[11px] text-slate-500">Require outreach</span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-xs font-medium text-slate-400">Approved / Onboarded</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">{countApproved} / 3</div>
-            <span className="text-[11px] text-slate-500">Target: 3 founding spots</span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-xs font-medium text-slate-400">Cohort Pricing</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">$199 <span className="text-xs font-normal text-slate-400">/mo</span></div>
-            <span className="text-[11px] text-emerald-400">High-touch founder support</span>
-          </div>
+          <button
+            onClick={() => { setActiveTab('cold'); setSearchTerm(''); }}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === 'cold'
+                ? 'bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Snowflake className="w-4 h-4" />
+            <span>Cold Outbound & Scraper</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+              activeTab === 'cold' ? 'bg-slate-950/40 text-slate-950' : 'bg-slate-800 text-emerald-400'
+            }`}>
+              {prospects.length}
+            </span>
+          </button>
         </div>
 
-        {/* SEARCH & STATUS FILTER */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search company, name, email, city..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-xs focus:border-cyan-400 outline-none"
-            />
-          </div>
-
-          {/* STATUS TABS */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            <button
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all ${
-                statusFilter === 'ALL' ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              All ({leads.length})
+        {/* SCRAPE NOTIFICATION BANNER */}
+        {scrapeNotification && (
+          <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center justify-between">
+            <span>{scrapeNotification}</span>
+            <button onClick={() => setScrapeNotification(null)} className="text-slate-400 hover:text-white">
+              <X className="w-4 h-4" />
             </button>
-            {ALL_STATUSES.map((st) => {
-              const count = leads.filter((l) => l.status === st).length;
-              return (
-                <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all ${
-                    statusFilter === st ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {st} {count > 0 ? `(${count})` : ''}
-                </button>
-              );
-            })}
           </div>
-        </div>
+        )}
 
-        {/* APPLICATIONS LIST */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden shadow-xl">
-          {loading ? (
-            <div className="py-16 text-center text-slate-500 text-sm">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
-              Loading pilot applications...
+        {/* TAB 1: WARM INBOUND LEADS */}
+        {activeTab === 'warm' && (
+          <div className="space-y-6">
+            {/* KPI STATS */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="glass rounded-2xl p-4 border border-slate-800">
+                <span className="text-xs text-slate-400 font-medium">Total Inbound Leads</span>
+                <div className="text-2xl font-bold text-white mt-1">{leads.length}</div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-slate-800">
+                <span className="text-xs text-cyan-400 font-medium">New Submissions</span>
+                <div className="text-2xl font-bold text-cyan-400 mt-1">
+                  {leads.filter((l) => l.status === 'NEW').length}
+                </div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-slate-800">
+                <span className="text-xs text-emerald-400 font-medium">Onboarded / Active</span>
+                <div className="text-2xl font-bold text-emerald-400 mt-1">
+                  {leads.filter((l) => l.status === 'ONBOARDED').length}
+                </div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-slate-800">
+                <span className="text-xs text-purple-400 font-medium">Qualified</span>
+                <div className="text-2xl font-bold text-purple-400 mt-1">
+                  {leads.filter((l) => l.status === 'QUALIFIED' || l.status === 'APPROVED').length}
+                </div>
+              </div>
             </div>
-          ) : filteredLeads.length === 0 ? (
-            <div className="py-16 text-center text-slate-500 text-sm">
-              No applications match your criteria.
+
+            {/* FILTERS */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  placeholder="Search inbound by company, contact, email, or city..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 outline-none"
+              >
+                <option value="ALL">All Inbound Statuses</option>
+                {ALL_STATUSES.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 text-[11px] uppercase tracking-wider bg-slate-900/60">
-                    <th className="py-3 px-4 font-semibold">Date</th>
-                    <th className="py-3 px-4 font-semibold">Company & Contact</th>
-                    <th className="py-3 px-4 font-semibold">Location</th>
-                    <th className="py-3 px-4 font-semibold">Fleet Size</th>
-                    <th className="py-3 px-4 font-semibold">Attribution</th>
-                    <th className="py-3 px-4 font-semibold">Status</th>
-                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-200">
-                  {filteredLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-slate-900/40 transition-colors">
-                      <td className="py-4 px-4 font-mono text-slate-400 text-xs whitespace-nowrap">
-                        {new Date(lead.createdAt).toLocaleDateString()}
-                        <div className="text-[10px] text-slate-500">
-                          {new Date(lead.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </td>
 
-                      <td className="py-4 px-4">
-                        <div className="font-bold text-white text-sm">{lead.companyName}</div>
-                        <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                          <span>{lead.contactName}</span>
-                          <span className="text-slate-600">•</span>
-                          <a href={`mailto:${lead.email}`} className="text-cyan-400 hover:underline">
-                            {lead.email}
-                          </a>
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          <a href={`tel:${lead.phone}`} className="hover:underline text-slate-300">
-                            {lead.phone}
-                          </a>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-slate-300">
-                          <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                          <span>{lead.city}, {lead.province}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300">
-                          {lead.technicianCount}
-                        </span>
-                      </td>
-
-                      <td className="py-4 px-4">
-                        <div className="text-xs font-mono text-cyan-300">{lead.source || 'direct'}</div>
-                        {lead.utmCampaign && (
-                          <div className="text-[10px] text-slate-500 truncate max-w-[120px]">
-                            {lead.utmCampaign}
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <select
-                          value={lead.status}
-                          disabled={updatingId === lead.id}
-                          onChange={(e) => handleStatusChange(lead.id, e.target.value as PilotLeadStatus)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold border outline-none cursor-pointer bg-[#0A1016] ${STATUS_COLORS[lead.status]}`}
-                        >
-                          {ALL_STATUSES.map((st) => (
-                            <option key={st} value={st} className="bg-[#0A1016] text-slate-200">
-                              {st}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-
-                      <td className="py-4 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleAutoProvision(lead)}
-                            disabled={provisioningId === lead.id}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md ${
-                              lead.status === 'ONBOARDED'
-                                ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 hover:scale-[1.03]'
-                            }`}
-                          >
-                            <Rocket className={`w-3.5 h-3.5 ${provisioningId === lead.id ? 'animate-bounce' : ''}`} />
-                            <span>{provisioningId === lead.id ? 'Provisioning...' : lead.status === 'ONBOARDED' ? 'Provisioned' : 'Auto-Provision'}</span>
-                          </button>
-
-                          <a
-                            href={`mailto:${lead.email}?subject=AquaFlow Founding Pilot Next Steps (${lead.companyName})`}
-                            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all"
-                            title="Email Applicant"
-                          >
-                            <Mail className="w-3.5 h-3.5" />
-                          </a>
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/40 transition-all"
-                            title="Call Phone"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
-                          <button
-                            onClick={() => setSelectedLead(lead)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition-all"
-                          >
-                            Details
-                          </button>
-                        </div>
-                      </td>
+            {/* LEADS TABLE */}
+            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="py-3.5 px-4">Company & Contact</th>
+                      <th className="py-3.5 px-4">Location</th>
+                      <th className="py-3.5 px-4">Fleet</th>
+                      <th className="py-3.5 px-4">Source</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                    {filteredLeads.map((lead) => (
+                      <tr key={lead.id} className="hover:bg-slate-900/40 transition-colors">
+                        <td className="py-4 px-4">
+                          <div className="font-bold text-white text-sm">{lead.companyName}</div>
+                          <div className="text-slate-400 text-xs mt-0.5">{lead.contactName} • {lead.email}</div>
+                        </td>
+                        <td className="py-4 px-4 whitespace-nowrap text-slate-300">
+                          {lead.city}, {lead.province}
+                        </td>
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                            {lead.technicianCount}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 whitespace-nowrap text-cyan-400 font-mono text-[11px]">
+                          {lead.source || 'direct'}
+                        </td>
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <select
+                            value={lead.status}
+                            disabled={updatingId === lead.id}
+                            onChange={(e) => handleStatusChange(lead.id, e.target.value as PilotLeadStatus)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border outline-none bg-[#0A1016] ${STATUS_COLORS[lead.status]}`}
+                          >
+                            {ALL_STATUSES.map((st) => (
+                              <option key={st} value={st}>{st}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="py-4 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleAutoProvision(lead)}
+                              disabled={provisioningId === lead.id}
+                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                lead.status === 'ONBOARDED'
+                                  ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 hover:scale-[1.02]'
+                              }`}
+                            >
+                              <Rocket className="w-3.5 h-3.5" />
+                              <span>{provisioningId === lead.id ? 'Provisioning...' : lead.status === 'ONBOARDED' ? 'Provisioned' : 'Auto-Provision'}</span>
+                            </button>
+                            <a
+                              href={`mailto:${lead.email}`}
+                              className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-400"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </a>
+                            <button
+                              onClick={() => setSelectedLead(lead)}
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            >
+                              Details
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* TAB 2: COLD OUTBOUND & SCRAPER */}
+        {activeTab === 'cold' && (
+          <div className="space-y-6">
+            {/* SCRAPER CONTROL HERO */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-[#0A121A] to-slate-950 border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="space-y-1 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase">
+                  <Zap className="w-3 h-3" /> US Contractor Acquisition Engine
+                </div>
+                <h2 className="text-xl font-bold text-white">Targeted US Plumbing Prospector</h2>
+                <p className="text-xs text-slate-400">
+                  Scrapes independent 2–15 van plumbing companies across high-volume US states with qualified pain points and contact details.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={scrapingState}
+                  onChange={(e) => setScrapingState(e.target.value)}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white outline-none"
+                >
+                  <option value="ALL">🇺🇸 All Target US States</option>
+                  <option value="TX">Texas (Houston, Dallas, Austin, San Antonio)</option>
+                  <option value="FL">Florida (Tampa, Miami, Orlando, Jax)</option>
+                  <option value="CA">California (San Diego, SF, LA)</option>
+                  <option value="OH">Ohio & Midwest (Columbus, Cincy, Chicago)</option>
+                  <option value="GA">Georgia & Southeast (Atlanta, Charlotte, Nashville)</option>
+                </select>
+
+                <button
+                  onClick={handleRunScraper}
+                  disabled={isScraping}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
+                >
+                  <Zap className={`w-4 h-4 ${isScraping ? 'animate-spin' : ''}`} />
+                  <span>{isScraping ? 'Scraping US Contractors...' : '⚡ 1-Click Run Prospector'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* KPI MATRIX */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="glass rounded-2xl p-4 border border-slate-800">
+                <span className="text-xs text-slate-400 font-medium">Total Cold Prospects</span>
+                <div className="text-2xl font-bold text-white mt-1">{prospects.length}</div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-emerald-500/30">
+                <span className="text-xs text-emerald-400 font-medium">🟢 Green (Yes / High Fit)</span>
+                <div className="text-2xl font-bold text-emerald-400 mt-1">
+                  {prospects.filter((p) => p.interestLevel === 'GREEN').length}
+                </div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-amber-500/30">
+                <span className="text-xs text-amber-400 font-medium">🟡 Yellow (Undecided)</span>
+                <div className="text-2xl font-bold text-amber-400 mt-1">
+                  {prospects.filter((p) => p.interestLevel === 'YELLOW').length}
+                </div>
+              </div>
+              <div className="glass rounded-2xl p-4 border border-red-500/30">
+                <span className="text-xs text-red-400 font-medium">🔴 Red (Hard No)</span>
+                <div className="text-2xl font-bold text-red-400 mt-1">
+                  {prospects.filter((p) => p.interestLevel === 'RED').length}
+                </div>
+              </div>
+            </div>
+
+            {/* COLD PROSPECTS FILTERS */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  placeholder="Search cold prospects by company, owner, city, or state..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <select
+                value={interestFilter}
+                onChange={(e) => setInterestFilter(e.target.value)}
+                className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 outline-none"
+              >
+                <option value="ALL">Traffic Light: All</option>
+                <option value="GREEN">🟢 Green (Yes)</option>
+                <option value="YELLOW">🟡 Yellow (Undecided)</option>
+                <option value="RED">🔴 Red (Hard No)</option>
+                <option value="UNDECIDED">⚪ Unranked</option>
+              </select>
+
+              <select
+                value={outreachFilter}
+                onChange={(e) => setOutreachFilter(e.target.value)}
+                className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 outline-none"
+              >
+                <option value="ALL">Outreach: All</option>
+                <option value="NOT_CONTACTED">⚪ Not Contacted</option>
+                <option value="EMAIL_SENT">🔵 Email Sent</option>
+                <option value="CALLED">📞 Called</option>
+                <option value="IN_CONVERSATION">💬 In Conversation</option>
+                <option value="PROVISIONED">🚀 Provisioned</option>
+              </select>
+            </div>
+
+            {/* COLD PROSPECTS TABLE */}
+            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="py-3.5 px-4">Company & Decision Maker</th>
+                      <th className="py-3.5 px-4">State & City</th>
+                      <th className="py-3.5 px-4">Fleet</th>
+                      <th className="py-3.5 px-4">Traffic Light Interest</th>
+                      <th className="py-3.5 px-4">Outreach Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                    {filteredProspects.map((p) => {
+                      const intCfg = INTEREST_CONFIG[p.interestLevel] || INTEREST_CONFIG.UNDECIDED;
+                      const outCfg = OUTREACH_CONFIG[p.outreachStatus] || OUTREACH_CONFIG.NOT_CONTACTED;
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-900/40 transition-colors">
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-white text-sm">{p.companyName}</span>
+                              {p.website && (
+                                <a href={p.website} target="_blank" className="text-slate-500 hover:text-cyan-400">
+                                  <Globe className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                            <div className="text-slate-400 text-xs mt-0.5">
+                              {p.contactName} ({p.title}) • {p.email} • {p.phone}
+                            </div>
+                          </td>
+
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded-md bg-slate-900 font-bold text-cyan-300 border border-slate-800 mr-1.5">
+                              {p.state}
+                            </span>
+                            <span className="text-slate-300">{p.city}</span>
+                          </td>
+
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                              {p.technicianCount}
+                            </span>
+                          </td>
+
+                          {/* TRAFFIC LIGHT INTEREST PICKER */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <select
+                              value={p.interestLevel}
+                              disabled={updatingId === p.id}
+                              onChange={(e) => handleUpdateProspect(p.id, { interestLevel: e.target.value as InterestLevel })}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border outline-none cursor-pointer ${intCfg.bg} ${intCfg.text} ${intCfg.border}`}
+                            >
+                              <option value="GREEN" className="bg-[#0A1016] text-emerald-300">🟢 Green (Yes / High Interest)</option>
+                              <option value="YELLOW" className="bg-[#0A1016] text-amber-300">🟡 Yellow (Undecided / Nurturing)</option>
+                              <option value="RED" className="bg-[#0A1016] text-red-400">🔴 Red (Hard No / Declined)</option>
+                              <option value="UNDECIDED" className="bg-[#0A1016] text-slate-400">⚪ Unranked</option>
+                            </select>
+                          </td>
+
+                          {/* OUTREACH STATUS PICKER */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <select
+                              value={p.outreachStatus}
+                              disabled={updatingId === p.id}
+                              onChange={(e) => handleUpdateProspect(p.id, { outreachStatus: e.target.value as OutreachStatus })}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border outline-none cursor-pointer ${outCfg.color}`}
+                            >
+                              <option value="NOT_CONTACTED" className="bg-[#0A1016] text-slate-300">⚪ Not Contacted</option>
+                              <option value="EMAIL_SENT" className="bg-[#0A1016] text-blue-300">🔵 Email Sent</option>
+                              <option value="CALLED" className="bg-[#0A1016] text-purple-300">📞 Called</option>
+                              <option value="IN_CONVERSATION" className="bg-[#0A1016] text-amber-300">💬 In Conversation</option>
+                              <option value="PROVISIONED" className="bg-[#0A1016] text-emerald-300">🚀 Provisioned</option>
+                            </select>
+                          </td>
+
+                          {/* ACTION BUTTONS */}
+                          <td className="py-4 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleAutoProvision(p)}
+                                disabled={provisioningId === p.id}
+                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                  p.outreachStatus === 'PROVISIONED'
+                                    ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 hover:scale-[1.02]'
+                                }`}
+                              >
+                                <Rocket className="w-3.5 h-3.5" />
+                                <span>{provisioningId === p.id ? 'Provisioning...' : p.outreachStatus === 'PROVISIONED' ? 'Provisioned' : 'Auto-Provision'}</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  const text = `Hi ${p.contactName},\n\nI noticed ${p.companyName} is running a strong plumbing team in ${p.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${p.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
+                                  navigator.clipboard.writeText(text);
+                                  handleUpdateProspect(p.id, { outreachStatus: 'EMAIL_SENT' });
+                                  alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
+                                }}
+                                className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-400"
+                                title="Copy Cold Email Script"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+
+                              <a
+                                href={`tel:${p.phone}`}
+                                onClick={() => handleUpdateProspect(p.id, { outreachStatus: 'CALLED' })}
+                                className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400"
+                                title="Call Phone"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                              </a>
+
+                              <button
+                                onClick={() => setSelectedProspect(p)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                              >
+                                Details
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteProspect(p.id, p.companyName)}
+                                className="p-1.5 rounded-lg bg-slate-900 text-slate-500 hover:text-red-400"
+                                title="Remove Prospect"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PROVISION SUCCESS MODAL */}
         {provisionResult && (
@@ -720,7 +1118,7 @@ export default function PilotAdminDashboard() {
           </div>
         )}
 
-        {/* DETAILS MODAL */}
+        {/* DETAILS MODAL FOR WARM LEAD */}
         {selectedLead && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-cyan-500/40 shadow-2xl relative space-y-5">
@@ -787,23 +1185,6 @@ export default function PilotAdminDashboard() {
                     </p>
                   </div>
                 )}
-
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Source:</span>
-                    <span className="text-slate-300">{selectedLead.source || 'direct'}</span>
-                  </div>
-                  {selectedLead.utmCampaign && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">UTM Campaign:</span>
-                      <span className="text-cyan-400">{selectedLead.utmCampaign}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Created:</span>
-                    <span className="text-slate-400">{new Date(selectedLead.createdAt).toLocaleString()}</span>
-                  </div>
-                </div>
               </div>
 
               <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
@@ -823,6 +1204,109 @@ export default function PilotAdminDashboard() {
                   <Mail className="w-3.5 h-3.5" />
                   <span>Email Lead</span>
                 </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DETAILS MODAL FOR COLD PROSPECT */}
+        {selectedProspect && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-500/40 shadow-2xl relative space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-emerald-400">Prospect ID: {selectedProspect.id.slice(0, 8)}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+                      {selectedProspect.state}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mt-0.5">{selectedProspect.companyName}</h3>
+                </div>
+                <button
+                  onClick={() => setSelectedProspect(null)}
+                  className="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs sm:text-sm text-slate-300">
+                <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Decision Maker</span>
+                    <strong className="text-white">{selectedProspect.contactName} ({selectedProspect.title})</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Fleet Size</span>
+                    <strong className="text-white">{selectedProspect.technicianCount}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Email</span>
+                    <a href={`mailto:${selectedProspect.email}`} className="text-cyan-400 hover:underline">
+                      {selectedProspect.email}
+                    </a>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Phone</span>
+                    <a href={`tel:${selectedProspect.phone}`} className="text-slate-200 hover:underline">
+                      {selectedProspect.phone}
+                    </a>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                    Identified Operational Pain Points:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProspect.painPoints.map((p) => (
+                      <span
+                        key={p}
+                        className="px-2.5 py-1 rounded-lg bg-red-950/30 border border-red-500/30 text-red-300 text-xs font-medium"
+                      >
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    Rep Outreach Notes:
+                  </span>
+                  <textarea
+                    defaultValue={selectedProspect.notes || ''}
+                    onBlur={(e) => handleUpdateProspect(selectedProspect.id, { notes: e.target.value })}
+                    placeholder="Enter call notes or objections here..."
+                    className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 outline-none focus:border-emerald-500"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
+                <button
+                  onClick={() => handleAutoProvision(selectedProspect)}
+                  disabled={provisioningId === selectedProspect.id}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all"
+                >
+                  <Rocket className="w-4 h-4" />
+                  <span>{provisioningId === selectedProspect.id ? 'Provisioning...' : '🚀 Auto-Provision Org'}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const text = `Hi ${selectedProspect.contactName},\n\nI noticed ${selectedProspect.companyName} is running a strong plumbing team in ${selectedProspect.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
+                    navigator.clipboard.writeText(text);
+                    handleUpdateProspect(selectedProspect.id, { outreachStatus: 'EMAIL_SENT' });
+                    alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Cold Script</span>
+                </button>
               </div>
             </div>
           </div>

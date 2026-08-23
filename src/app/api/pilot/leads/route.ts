@@ -4,7 +4,7 @@ import { validateSession } from '@/lib/auth/session';
 import { cookies } from 'next/headers';
 import { timingSafeEqual } from 'crypto';
 
-async function isAuthorizedAdmin(req: NextRequest): Promise<boolean> {
+export async function isAuthorizedAdmin(req: NextRequest): Promise<boolean> {
   // 1. Check secure Header API Secret (timing-safe comparison)
   const headerSecret =
     req.headers.get('x-pilot-admin-key') ||

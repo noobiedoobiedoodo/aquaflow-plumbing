@@ -74,11 +74,36 @@ export async function POST(
 
     const { id } = await params;
     const leads = await getPilotLeads();
-    const lead = leads.find((l) => l.id === id);
+    let lead = leads.find((l) => l.id === id);
+
+    if (!lead) {
+      const { getColdProspects } = await import('@/lib/services/prospecting-service');
+      const prospects = await getColdProspects();
+      const prospect = prospects.find((p) => p.id === id);
+      if (prospect) {
+        lead = {
+          id: prospect.id,
+          companyName: prospect.companyName,
+          contactName: prospect.contactName,
+          email: prospect.email,
+          phone: prospect.phone,
+          website: prospect.website,
+          city: prospect.city,
+          province: prospect.state,
+          technicianCount: prospect.technicianCount,
+          painPoints: prospect.painPoints,
+          notes: prospect.notes,
+          status: 'NEW',
+          source: 'outbound_prospector',
+          createdAt: prospect.createdAt,
+          updatedAt: prospect.updatedAt,
+        };
+      }
+    }
 
     if (!lead) {
       return NextResponse.json(
-        { success: false, message: `Pilot lead not found with ID: ${id}` },
+        { success: false, message: `Lead or Prospect not found with ID: ${id}` },
         { status: 404 }
       );
     }
