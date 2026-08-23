@@ -25,7 +25,6 @@ export async function POST(req: Request) {
     // If you don't have a price ID, you can use price_data inline
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
@@ -33,6 +32,7 @@ export async function POST(req: Request) {
             product_data: {
               name: 'AquaFlow Core Operating System',
               description: 'Full access to scheduling, dispatch, billing, and intelligent operations.',
+              tax_code: 'txcd_10103000',
             },
             unit_amount: 19900, // $199.00 / month
             recurring: {

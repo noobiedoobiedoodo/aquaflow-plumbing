@@ -70,7 +70,6 @@ async function generatePilotPaymentLink(
       const { stripe } = await import('@/lib/stripe');
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
-        payment_method_types: ['card'],
         line_items: [
           {
             price_data: {
@@ -78,6 +77,7 @@ async function generatePilotPaymentLink(
               product_data: {
                 name: 'AquaFlow Founding Partner Pilot Cohort',
                 description: `Lifetime $199/mo rate for ${companyName} with unlimited dispatch, scheduling & automated invoicing.`,
+                tax_code: 'txcd_10103000',
               },
               unit_amount: 19900, // $199.00 / month
               recurring: {
