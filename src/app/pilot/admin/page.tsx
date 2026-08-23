@@ -24,7 +24,10 @@ import {
   X,
   KeyRound,
   LogOut,
-  AlertTriangle
+  AlertTriangle,
+  Rocket,
+  Copy,
+  Check
 } from 'lucide-react';
 import { PilotLeadRecord, PilotLeadStatus } from '@/lib/services/pilot-lead-service';
 
@@ -50,6 +53,27 @@ const ALL_STATUSES: PilotLeadStatus[] = [
   'DECLINED',
 ];
 
+interface ProvisionResponse {
+  success: boolean;
+  message: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    currency?: string;
+    timezone?: string;
+  };
+  user?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    tempPassword?: string;
+  };
+  loginUrl?: string;
+  alreadyProvisioned?: boolean;
+}
+
 export default function PilotAdminDashboard() {
   const [leads, setLeads] = useState<PilotLeadRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +81,9 @@ export default function PilotAdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedLead, setSelectedLead] = useState<PilotLeadRecord | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [provisioningId, setProvisioningId] = useState<string | null>(null);
+  const [provisionResult, setProvisionResult] = useState<ProvisionResponse | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [adminKey, setAdminKey] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -162,6 +189,36 @@ export default function PilotAdminDashboard() {
       console.error('Failed to update lead status:', err);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleAutoProvision = async (lead: PilotLeadRecord) => {
+    setProvisioningId(lead.id);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch(`/api/pilot/provision/${lead.id}`, {
+        method: 'POST',
+        headers,
+      });
+      const data: ProvisionResponse = await res.json();
+      if (data.success) {
+        setProvisionResult(data);
+        setLeads((prev) =>
+          prev.map((item) => (item.id === lead.id ? { ...item, status: 'ONBOARDED' } : item))
+        );
+        if (selectedLead?.id === lead.id) {
+          setSelectedLead((prev) => (prev ? { ...prev, status: 'ONBOARDED' } : null));
+        }
+      } else {
+        alert(`Auto-provisioning failed: ${data.message}`);
+      }
+    } catch (err) {
+      console.error('Auto provision error:', err);
+      alert('Network error provisioning company.');
+    } finally {
+      setProvisioningId(null);
     }
   };
 
@@ -498,6 +555,19 @@ export default function PilotAdminDashboard() {
 
                       <td className="py-4 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleAutoProvision(lead)}
+                            disabled={provisioningId === lead.id}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md ${
+                              lead.status === 'ONBOARDED'
+                                ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 hover:scale-[1.03]'
+                            }`}
+                          >
+                            <Rocket className={`w-3.5 h-3.5 ${provisioningId === lead.id ? 'animate-bounce' : ''}`} />
+                            <span>{provisioningId === lead.id ? 'Provisioning...' : lead.status === 'ONBOARDED' ? 'Provisioned' : 'Auto-Provision'}</span>
+                          </button>
+
                           <a
                             href={`mailto:${lead.email}?subject=AquaFlow Founding Pilot Next Steps (${lead.companyName})`}
                             className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all"
@@ -527,6 +597,90 @@ export default function PilotAdminDashboard() {
             </div>
           )}
         </div>
+
+        {/* PROVISION SUCCESS MODAL */}
+        {provisionResult && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-500/50 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
+                    <Rocket className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Company Provisioned Successfully!</h3>
+                    <span className="text-xs text-slate-400">PostgreSQL Organization & Owner account created</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setProvisionResult(null)}
+                  className="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3 text-xs sm:text-sm">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                  <span className="text-slate-400">Organization:</span>
+                  <strong className="text-white">{provisionResult.organization?.name}</strong>
+                </div>
+
+                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                  <span className="text-slate-400">Owner Login Email:</span>
+                  <strong className="text-cyan-400 font-mono">{provisionResult.user?.email}</strong>
+                </div>
+
+                {provisionResult.user?.tempPassword && (
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-800 bg-emerald-950/20 p-2 rounded-xl border border-emerald-500/20">
+                    <span className="text-emerald-300 font-medium">Temporary Password:</span>
+                    <strong className="text-white font-mono text-xs">{provisionResult.user.tempPassword}</strong>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Login Portal URL:</span>
+                  <a
+                    href="https://aquaflow-plumbing-theta.vercel.app/login"
+                    target="_blank"
+                    className="text-cyan-400 hover:underline flex items-center gap-1 font-mono text-xs"
+                  >
+                    <span>/login</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-slate-400 bg-slate-900/40 p-3 rounded-xl border border-slate-800/80">
+                ✅ Pre-populated 6 standard plumbing services (Drains, Water Heaters, Leaks, Jetting).<br/>
+                ✅ Generated business hours (Mon-Fri 8am-5pm + Sat Emergency).<br/>
+                ✅ Created Super Admin membership and technician profile.
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    const text = `AquaFlow Login Credentials:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\nTemporary Password: ${provisionResult.user?.tempPassword || '(Already Set)'}\nLogin: https://aquaflow-plumbing-theta.vercel.app/login`;
+                    navigator.clipboard.writeText(text);
+                    setCopiedKey(true);
+                    setTimeout(() => setCopiedKey(false), 2500);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700 transition-all"
+                >
+                  {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedKey ? 'Credentials Copied!' : 'Copy Credentials to Clipboard'}</span>
+                </button>
+
+                <button
+                  onClick={() => setProvisionResult(null)}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow-md"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* DETAILS MODAL */}
         {selectedLead && (
@@ -614,28 +768,22 @@ export default function PilotAdminDashboard() {
                 </div>
               </div>
 
-              <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Status:</span>
-                  <select
-                    value={selectedLead.status}
-                    onChange={(e) => handleStatusChange(selectedLead.id, e.target.value as PilotLeadStatus)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none cursor-pointer bg-[#0A1016] ${STATUS_COLORS[selectedLead.status]}`}
-                  >
-                    {ALL_STATUSES.map((st) => (
-                      <option key={st} value={st} className="bg-[#0A1016] text-slate-200">
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
+                <button
+                  onClick={() => handleAutoProvision(selectedLead)}
+                  disabled={provisioningId === selectedLead.id}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all"
+                >
+                  <Rocket className="w-4 h-4" />
+                  <span>{provisioningId === selectedLead.id ? 'Provisioning...' : '🚀 Auto-Provision Org'}</span>
+                </button>
 
                 <a
                   href={`mailto:${selectedLead.email}?subject=AquaFlow Founding Pilot Onboarding Setup (${selectedLead.companyName})`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 font-bold text-xs shadow-md"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>Send Onboarding Email</span>
+                  <span>Email Lead</span>
                 </a>
               </div>
             </div>
