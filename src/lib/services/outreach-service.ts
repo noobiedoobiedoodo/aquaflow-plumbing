@@ -111,9 +111,12 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
       technicianCount: prospect.technicianCount,
     });
 
+    const founderReplyTo = process.env.FOUNDER_ALERT_EMAIL || process.env.RESEND_FROM_EMAIL;
+
     const res = await resend.emails.send({
       from: fromEmail,
       to: prospect.email,
+      replyTo: founderReplyTo || undefined,
       subject: emailContent.subject,
       text: emailContent.text,
       html: emailContent.html,
