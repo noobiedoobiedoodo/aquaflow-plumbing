@@ -346,3 +346,24 @@ export async function updatePilotLeadStatus(
   return null;
 }
 
+/**
+ * Permanently deletes a pilot lead from PostgreSQL and storage
+ */
+export async function deletePilotLead(id: string): Promise<boolean> {
+  await ensurePilotLeadTable();
+
+  try {
+    await prisma.$executeRawUnsafe(`DELETE FROM pilot_applications WHERE id = $1`, id);
+  } catch (err) {
+    console.error('Failed to delete lead from DB:', err);
+  }
+
+  try {
+    const list = await getPilotLeads();
+    const filtered = list.filter((l) => l.id !== id);
+    await fs.writeFile(STORAGE_PATH, JSON.stringify(filtered, null, 2), 'utf-8');
+  } catch {}
+
+  return true;
+}
+

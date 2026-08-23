@@ -333,6 +333,26 @@ export default function PilotAdminDashboard() {
     }
   };
 
+  // Delete Warm Inbound Lead
+  const handleDeleteLead = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to permanently delete application from ${name}?`)) return;
+    try {
+      const headers: Record<string, string> = {};
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch(`/api/pilot/leads/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        setLeads((prev) => prev.filter((l) => l.id !== id));
+        if (selectedLead?.id === id) setSelectedLead(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete lead:', err);
+    }
+  };
+
   // Auto Provision Company
   const handleAutoProvision = async (item: { id: string; companyName: string }) => {
     setProvisioningId(item.id);
@@ -744,6 +764,13 @@ export default function PilotAdminDashboard() {
                               className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
                             >
                               Details
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLead(lead.id, lead.companyName)}
+                              className="p-1.5 rounded-lg bg-slate-900 text-slate-500 hover:text-red-400"
+                              title="Delete Application"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -1230,13 +1257,23 @@ export default function PilotAdminDashboard() {
                   <span>{provisioningId === selectedLead.id ? 'Provisioning...' : '🚀 Auto-Provision Org'}</span>
                 </button>
 
-                <a
-                  href={`mailto:${selectedLead.email}?subject=AquaFlow Founding Pilot Onboarding Setup (${selectedLead.companyName})`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Email Lead</span>
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`mailto:${selectedLead.email}?subject=AquaFlow Founding Pilot Onboarding Setup (${selectedLead.companyName})`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Email Lead</span>
+                  </a>
+
+                  <button
+                    onClick={() => handleDeleteLead(selectedLead.id, selectedLead.companyName)}
+                    className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+                    title="Delete Application"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

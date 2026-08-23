@@ -111,3 +111,36 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authorized = await isAuthorizedAdmin(req);
+    if (!authorized) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Unauthorized: Access restricted to verified AquaFlow administrators.',
+        },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const { deletePilotLead } = await import('@/lib/services/pilot-lead-service');
+    await deletePilotLead(id);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Pilot lead deleted successfully.',
+    });
+  } catch (error) {
+    console.error('Failed to delete pilot lead:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal error deleting lead' },
+      { status: 500 }
+    );
+  }
+}
