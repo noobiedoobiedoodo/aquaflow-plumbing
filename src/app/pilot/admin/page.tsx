@@ -1553,36 +1553,65 @@ export default function PilotAdminDashboard() {
                   </div>
 
                   {/* FORMATTED EMAIL CARD PREVIEW */}
-                  <div className="p-3.5 rounded-xl bg-white text-slate-900 space-y-2 text-xs shadow-inner">
-                    <div className="inline-block px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200">
-                      🚀 AquaFlow Founding Partner Program • {selectedProspect.city}, {selectedProspect.state}
+                  <div className="rounded-2xl bg-white text-slate-900 overflow-hidden border border-slate-200 shadow-md">
+                    <div className="bg-slate-950 p-4 border-b border-sky-500/40 text-white">
+                      <div className="text-sm font-extrabold flex items-center gap-1.5 text-white">
+                        <span>💧 AquaFlow<span className="text-sky-400">OS</span></span>
+                      </div>
+                      <div className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-sky-950 border border-sky-500/40 text-[10px] font-bold text-sky-300 uppercase tracking-wider">
+                        🚀 Founding Partner Cohort • {selectedProspect.city}, {selectedProspect.state}
+                      </div>
                     </div>
-                    <div className="font-bold text-slate-900 text-sm">
-                      Hi {selectedProspect.contactName.split(' ')[0] || selectedProspect.contactName},
-                    </div>
-                    <p className="text-slate-700 leading-relaxed">
-                      I noticed <strong>{selectedProspect.companyName}</strong> is running a high-demand plumbing operation in <strong>{selectedProspect.city}</strong>.
-                    </p>
-                    <p className="text-slate-700 leading-relaxed">
-                      We built AquaFlow specifically for independent trade businesses managing <strong>{selectedProspect.technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>{selectedProspect.painPoints[0]?.toLowerCase() || 'dispatch phone tag'}</strong>.
-                    </p>
-                    <p className="text-slate-700 leading-relaxed">
-                      We are opening <strong>3 Founding Partner spots</strong> in your region at a locked-in <strong>$199/month lifetime rate</strong> (includes multi-tech dispatch, automated customer GPS arrival texts, and 1-click mobile invoice collection).
-                    </p>
-                    <div className="py-1">
-                      <a
-                        href={`https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company=${encodeURIComponent(selectedProspect.companyName)}&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot`}
-                        target="_blank"
-                        className="inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white font-bold text-xs no-underline shadow-sm"
-                      >
-                        Claim Founding Pilot Spot ($199/mo) →
-                      </a>
-                    </div>
-                    <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-200">
-                      <strong>Personalized Pilot Link:</strong>{' '}
-                      <span className="font-mono text-slate-600 break-all">
-                        https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company={encodeURIComponent(selectedProspect.companyName)}
-                      </span>
+
+                    <div className="p-4 space-y-3 text-xs">
+                      <div className="font-bold text-slate-900 text-sm">
+                        Hi {selectedProspect.contactName.split(' ')[0] || selectedProspect.contactName},
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">
+                        I noticed <strong>{selectedProspect.companyName}</strong> is running a high-demand plumbing operation in <strong>{selectedProspect.city}</strong>.
+                      </p>
+                      <p className="text-slate-700 leading-relaxed">
+                        We built AquaFlow specifically for independent trade businesses managing <strong>{selectedProspect.technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>{selectedProspect.painPoints[0]?.toLowerCase() || 'dispatch phone tag'}</strong>.
+                      </p>
+
+                      {/* 3 VALUE PILLARS */}
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[11px] text-slate-800">
+                        <div className="flex items-center gap-2">
+                          <span>⚡</span> <span><strong>Automated Dispatch:</strong> Zero morning whiteboard chaos.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>📲</span> <span><strong>Customer GPS Alerts:</strong> Live technician arrival tracking.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>💳</span> <span><strong>Mobile Payments:</strong> 1-click card invoice collection on site.</span>
+                        </div>
+                      </div>
+
+                      {/* PRICING COMPARISON */}
+                      <div className="p-2.5 rounded-xl bg-slate-900 text-white space-y-1 text-[11px]">
+                        <div className="flex justify-between text-slate-400">
+                          <span>Legacy (ServiceTitan):</span>
+                          <span className="text-red-400 font-semibold">$1,200+/mo • 12-Mo Lock-in</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-sky-300 pt-1 border-t border-slate-800">
+                          <span>AquaFlow Founding Pilot:</span>
+                          <span className="text-emerald-400">$199/mo Flat (No Contracts)</span>
+                        </div>
+                      </div>
+
+                      <div className="py-1 text-center">
+                        <a
+                          href={`https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company=${encodeURIComponent(selectedProspect.companyName)}&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot`}
+                          target="_blank"
+                          className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-teal-600 text-white font-bold text-xs no-underline shadow-md hover:scale-[1.02] transition-transform"
+                        >
+                          Claim Founding Pilot Spot ($199/mo) →
+                        </a>
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-200">
+                        <strong>Sign-off:</strong> Stephan Sabeski • Founding Team • <a href={`https://aquaflow-plumbing-theta.vercel.app/pilot`} target="_blank" className="text-sky-600 font-mono">aquaflow-plumbing-theta.vercel.app/pilot</a>
+                      </div>
                     </div>
                   </div>
                 </div>

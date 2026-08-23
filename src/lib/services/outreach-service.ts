@@ -54,37 +54,95 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
-    .card { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .header { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
-    .btn { display: inline-block; background: linear-gradient(135deg, #0284c7, #0d9488); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; margin: 20px 0; }
-    .pill { display: inline-block; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #475569; margin-bottom: 12px; border: 1px solid #e2e8f0; text-decoration: none; }
-    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #94a3b8; line-height: 1.5; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; margin: 0; padding: 24px 12px; color: #1e293b; }
+    .wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+    .top-bar { background: linear-gradient(135deg, #0A121A 0%, #0F172A 100%); padding: 24px 28px; border-bottom: 2px solid #0284c7; }
+    .brand-title { font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; margin: 0; display: inline-flex; align-items: center; }
+    .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }
+    .content { padding: 28px; background: #ffffff; }
+    .salutation { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    p { font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 14px 0; }
+    .feature-grid { margin: 18px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+    .feature-item { display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 13px; color: #1e293b; }
+    .feature-item:last-child { margin-bottom: 0; }
+    .feature-icon { margin-right: 10px; font-size: 16px; flex-shrink: 0; }
+    .comparison-box { background: #0f172a; border-radius: 12px; padding: 16px; margin: 20px 0; color: #ffffff; }
+    .comp-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 12px; border-bottom: 1px solid #1e293b; }
+    .comp-row:last-child { border-bottom: none; padding-top: 8px; font-weight: bold; }
+    .btn-container { text-align: center; margin: 26px 0 18px 0; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); transition: all 0.2s ease; }
+    .subtext { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 20px; }
+    .footer { background: #f8fafc; padding: 22px 28px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; line-height: 1.6; }
+    .signoff { font-size: 13px; color: #1e293b; margin-bottom: 12px; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <a href="${pilotUrl}" style="text-decoration: none;">
-      <div class="pill">🚀 AquaFlow Founding Partner Program • ${city}, ${state}</div>
-    </a>
-    <div class="header">Hi ${firstName},</div>
-    <p>I noticed <strong>${companyName}</strong> is running a high-demand plumbing operation in ${city}.</p>
-    <p>We built AquaFlow specifically for independent trade businesses managing <strong>${technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>${primaryPain.toLowerCase()}</strong>.</p>
-    
-    <p>We are opening <strong>3 Founding Partner spots</strong> in your region at a locked-in <strong>$199/month lifetime rate</strong> (includes multi-tech dispatch, automated customer GPS arrival texts, and 1-click mobile invoice collection).</p>
-    
-    <div style="text-align: center;">
-      <a href="${pilotUrl}" class="btn">Claim Founding Pilot Spot ($199/mo) →</a>
+  <div class="wrapper">
+    <!-- BRAND TOP BAR -->
+    <div class="top-bar">
+      <a href="${pilotUrl}" style="text-decoration: none;">
+        <h1 class="brand-title">💧 AquaFlow<span style="color: #38bdf8;">OS</span></h1>
+      </a>
+      <br/>
+      <div class="badge">🚀 Founding Partner Cohort • ${city}, ${state}</div>
     </div>
 
-    <p style="font-size: 13px; color: #64748b;">Zero contracts. Zero per-technician seat fees. Fully set up in under 5 minutes.</p>
+    <!-- MAIN BODY CONTENT -->
+    <div class="content">
+      <div class="salutation">Hi ${firstName},</div>
+      <p>I noticed <strong>${companyName}</strong> is running a high-demand plumbing team in <strong>${city}</strong>.</p>
+      <p>We built AquaFlow specifically for independent contractors managing <strong>${technicianCount}</strong> who are tired of paying $1,200/month for bloated enterprise software or dealing with <strong>${primaryPain.toLowerCase()}</strong>.</p>
+      
+      <!-- 3 VALUE PILLARS -->
+      <div class="feature-grid">
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <div><strong>Automated Multi-Tech Dispatch:</strong> Eliminates morning whiteboard chaos and dispatch phone tag.</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📲</span>
+          <div><strong>Customer GPS Alerts:</strong> Automatic "Tech is on the way" texts with live technician arrival tracking.</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💳</span>
+          <div><strong>Instant Mobile Payments:</strong> 1-click mobile invoicing and card deposits on site.</div>
+        </div>
+      </div>
 
+      <!-- PRICING COMPARISON -->
+      <div class="comparison-box">
+        <div class="comp-row">
+          <span style="color: #94a3b8;">Legacy Software (ServiceTitan)</span>
+          <span style="color: #f87171;">$1,200+/mo • 12-Mo Lock-in</span>
+        </div>
+        <div class="comp-row">
+          <span style="color: #38bdf8;">AquaFlow Founding Pilot</span>
+          <span style="color: #34d399;">$199/mo Flat • Lifetime Rate (No Contracts)</span>
+        </div>
+      </div>
+
+      <p>We are selecting <strong>3 Founding Plumbing Partners</strong> in your region for our lifetime $199/month cohort.</p>
+
+      <!-- HIGH-IMPACT CTA -->
+      <div class="btn-container">
+        <a href="${pilotUrl}" class="btn">Claim Founding Pilot Spot ($199/mo) →</a>
+      </div>
+
+      <div class="subtext">
+        🔒 Zero setup fees • Zero per-seat tech penalties • Set up in under 5 minutes
+      </div>
+    </div>
+
+    <!-- COMPLIANT FOOTER -->
     <div class="footer">
-      <strong>Stephan Sabeski</strong> • Founding Team<br>
-      AquaFlow Plumbing Operating System • <a href="${pilotUrl}" style="color: #0284c7;">${domainDisplay}/pilot</a><br><br>
-      AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br>
-      <em>To opt out of future notifications, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
+      <div class="signoff">
+        <strong>Stephan Sabeski</strong> • Founding Team<br/>
+        AquaFlow Plumbing Operating System • <a href="${pilotUrl}" style="color: #0284c7; font-weight: bold; text-decoration: none;">${domainDisplay}/pilot</a>
+      </div>
+      AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br/>
+      <em>To opt out of future partner invites, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
     </div>
   </div>
 </body>
