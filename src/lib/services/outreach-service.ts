@@ -43,7 +43,7 @@ ${pilotUrl}
 Best regards,
 Stephan Sabeski
 Founding Team | AquaFlow Plumbing Operating System
-${baseUrl}
+${pilotUrl}
 
 ---
 AquaFlow Systems Inc. | 100 Innovation Way, Dallas TX / Winnipeg MB
@@ -59,13 +59,15 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     .card { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     .header { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
     .btn { display: inline-block; background: linear-gradient(135deg, #0284c7, #0d9488); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; margin: 20px 0; }
-    .pill { display: inline-block; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #475569; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .pill { display: inline-block; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #475569; margin-bottom: 12px; border: 1px solid #e2e8f0; text-decoration: none; }
     .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #94a3b8; line-height: 1.5; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="pill">🚀 AquaFlow Founding Partner Program • ${city}, ${state}</div>
+    <a href="${pilotUrl}" style="text-decoration: none;">
+      <div class="pill">🚀 AquaFlow Founding Partner Program • ${city}, ${state}</div>
+    </a>
     <div class="header">Hi ${firstName},</div>
     <p>I noticed <strong>${companyName}</strong> is running a high-demand plumbing operation in ${city}.</p>
     <p>We built AquaFlow specifically for independent trade businesses managing <strong>${technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>${primaryPain.toLowerCase()}</strong>.</p>
@@ -80,7 +82,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
 
     <div class="footer">
       <strong>Stephan Sabeski</strong> • Founding Team<br>
-      AquaFlow Plumbing Operating System • <a href="${baseUrl}" style="color: #0284c7;">${domainDisplay}</a><br><br>
+      AquaFlow Plumbing Operating System • <a href="${pilotUrl}" style="color: #0284c7;">${domainDisplay}/pilot</a><br><br>
       AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br>
       <em>To opt out of future notifications, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
     </div>
