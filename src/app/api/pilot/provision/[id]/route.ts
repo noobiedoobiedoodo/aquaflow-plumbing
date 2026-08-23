@@ -296,39 +296,72 @@ export async function POST(
         },
       });
 
-      return { org, user };
+      // 7. Generate 3-Minute One-Time Secure Activation Token
+      const rawActivationToken = randomBytes(32).toString('hex');
+      const { hashToken } = await import('@/lib/auth/customer-session');
+      const tokenHash = hashToken(rawActivationToken);
+      const tokenExpiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes strictly
+
+      await tx.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          organizationId: org.id,
+          tokenHash,
+          expiresAt: tokenExpiresAt,
+        },
+      });
+
+      return { org, user, rawActivationToken, tokenExpiresAt };
     });
 
-    // 7. Update pilot lead status to ONBOARDED
+    const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${provisionResult.rawActivationToken}`;
+
+    // 8. Update pilot lead status to ONBOARDED
     await updatePilotLeadStatus(
       lead.id,
       'ONBOARDED',
       `Provisioned Org: ${provisionResult.org.name} (${provisionResult.org.id})`
     );
 
-    // 8. Optionally send welcome email with credentials if Resend is active
-    if (process.env.RESEND_API_KEY) {
-      (async () => {
-        try {
-          const { Resend } = await import('resend');
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Onboarding <onboarding@resend.dev>';
+    // 9. Dispatch Welcome & Activation Email via Resend
+    let emailSent = false;
+    let emailError: string | null = null;
 
-          await resend.emails.send({
-            from: fromEmail,
-            to: lead.email,
-            subject: `🎉 Welcome to AquaFlow Founding Pilot — Account Ready (${lead.companyName})`,
-            text: `Hi ${firstName},\n\nWelcome to the AquaFlow Founding Pilot cohort ($199/mo)!\n\nYour commercial plumbing operating system has been provisioned and is ready for your team.\n\n🔑 YOUR LOGIN CREDENTIALS:\n• Portal URL: https://aquaflow-plumbing-theta.vercel.app/login\n• Email: ${cleanEmail}\n• Temporary Password: ${tempPassword}\n\nWHAT WE CONFIGURED FOR YOU:\n✅ ${lead.companyName} Organization Profile\n✅ Default Plumbing Service Catalog (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Schedule Calendar\n✅ Invoice & Payment Processing Engine\n\nNext Step: Log in, bookmark your dashboard, and test your first dispatch!\n\nIf you need anything, reply directly to this email.\n\nBest regards,\nThe AquaFlow Team`,
-          });
-        } catch (mailErr) {
-          console.warn('Welcome credentials email note:', mailErr);
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Onboarding <onboarding@resend.dev>';
+
+        const emailRes = await resend.emails.send({
+          from: fromEmail,
+          to: lead.email,
+          subject: `🎉 Welcome to AquaFlow Founding Pilot — Activate Your Account (${lead.companyName})`,
+          text: `Hi ${firstName},\n\nWelcome to the AquaFlow Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n🔒 3-MINUTE ONE-TIME ACTIVATION LINK:\n${activationLink}\n\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\nWHAT IS READY FOR YOU:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance, feel free to reply directly to this email.\n\nBest regards,\nThe AquaFlow Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
+        });
+
+        if (emailRes.error) {
+          emailError = emailRes.error.message;
+          console.warn('Resend email error:', emailRes.error);
+        } else {
+          emailSent = true;
         }
-      })().catch(() => {});
+      } catch (mailErr: any) {
+        emailError = mailErr?.message || 'Email delivery exception';
+        console.warn('Welcome email error note:', mailErr);
+      }
+    } else {
+      emailError = 'RESEND_API_KEY not configured in Vercel environment variables';
     }
 
     return NextResponse.json({
       success: true,
       message: `Successfully provisioned ${lead.companyName}`,
+      emailSent,
+      emailError,
+      activationLink,
+      tokenExpiresIn: '3 minutes',
+      tokenExpiresAt: provisionResult.tokenExpiresAt.toISOString(),
       organization: {
         id: provisionResult.org.id,
         name: provisionResult.org.name,

@@ -56,6 +56,11 @@ const ALL_STATUSES: PilotLeadStatus[] = [
 interface ProvisionResponse {
   success: boolean;
   message: string;
+  emailSent?: boolean;
+  emailError?: string | null;
+  activationLink?: string;
+  tokenExpiresIn?: string;
+  tokenExpiresAt?: string;
   organization?: {
     id: string;
     name: string;
@@ -631,36 +636,69 @@ export default function PilotAdminDashboard() {
                   <strong className="text-cyan-400 font-mono">{provisionResult.user?.email}</strong>
                 </div>
 
-                {provisionResult.user?.tempPassword && (
-                  <div className="flex justify-between items-center pb-2 border-b border-slate-800 bg-emerald-950/20 p-2 rounded-xl border border-emerald-500/20">
-                    <span className="text-emerald-300 font-medium">Temporary Password:</span>
-                    <strong className="text-white font-mono text-xs">{provisionResult.user.tempPassword}</strong>
+                {/* EMAIL DELIVERY STATUS */}
+                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                  <span className="text-slate-400">Email Delivery:</span>
+                  {provisionResult.emailSent ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/30 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                      <Check className="w-3 h-3" /> Dispatched via Resend
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/30 px-2 py-0.5 rounded-md border border-amber-500/30">
+                      Manual Dispatch (Share Link Below)
+                    </span>
+                  )}
+                </div>
+
+                {/* 3-MINUTE ACTIVATION LINK */}
+                {provisionResult.activationLink && (
+                  <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" /> 3-Minute Activation Link
+                      </span>
+                      <span className="text-[10px] font-bold text-amber-300 bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-500/30">
+                        ⏱️ Expires in 3 Mins
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={provisionResult.activationLink}
+                        className="flex-1 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-300 font-mono select-all outline-none"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(provisionResult.activationLink!);
+                          setCopiedKey(true);
+                          setTimeout(() => setCopiedKey(false), 2500);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-cyan-500 text-slate-950 text-xs font-bold shrink-0 hover:scale-[1.02] transition-all"
+                      >
+                        {copiedKey ? 'Copied!' : 'Copy Link'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Login Portal URL:</span>
-                  <a
-                    href="https://aquaflow-plumbing-theta.vercel.app/login"
-                    target="_blank"
-                    className="text-cyan-400 hover:underline flex items-center gap-1 font-mono text-xs"
-                  >
-                    <span>/login</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
+                {provisionResult.user?.tempPassword && (
+                  <div className="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+                    <span className="text-slate-400 font-medium">Backup Temp Password:</span>
+                    <strong className="text-white font-mono">{provisionResult.user.tempPassword}</strong>
+                  </div>
+                )}
               </div>
 
               <div className="text-[11px] text-slate-400 bg-slate-900/40 p-3 rounded-xl border border-slate-800/80">
                 ✅ Pre-populated 6 standard plumbing services (Drains, Water Heaters, Leaks, Jetting).<br/>
-                ✅ Generated business hours (Mon-Fri 8am-5pm + Sat Emergency).<br/>
-                ✅ Created Super Admin membership and technician profile.
+                ✅ Configured business hours (Mon-Fri 8am-5pm + Sat Emergency).<br/>
+                ✅ Created Super Admin account and technician profile.
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-2">
                 <button
                   onClick={() => {
-                    const text = `AquaFlow Login Credentials:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\nTemporary Password: ${provisionResult.user?.tempPassword || '(Already Set)'}\nLogin: https://aquaflow-plumbing-theta.vercel.app/login`;
+                    const text = `AquaFlow Activation:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n3-Minute One-Time Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n\n(Note: Activation link expires in 3 minutes for security)`;
                     navigator.clipboard.writeText(text);
                     setCopiedKey(true);
                     setTimeout(() => setCopiedKey(false), 2500);
@@ -668,7 +706,7 @@ export default function PilotAdminDashboard() {
                   className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700 transition-all"
                 >
                   {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey ? 'Credentials Copied!' : 'Copy Credentials to Clipboard'}</span>
+                  <span>{copiedKey ? 'Onboarding Message Copied!' : 'Copy Full Invite to Clipboard'}</span>
                 </button>
 
                 <button
