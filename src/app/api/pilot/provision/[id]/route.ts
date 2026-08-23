@@ -59,6 +59,52 @@ const US_TIMEZONES: Record<string, string> = {
   BC: 'America/Vancouver',
 };
 
+async function generatePilotPaymentLink(
+  orgId: string,
+  companyName: string,
+  email: string,
+  currency: string = 'USD'
+): Promise<string> {
+  if (process.env.STRIPE_SECRET_KEY) {
+    try {
+      const { stripe } = await import('@/lib/stripe');
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: {
+                name: 'AquaFlow Founding Partner Pilot Cohort',
+                description: `Lifetime $199/mo rate for ${companyName} with unlimited dispatch, scheduling & automated invoicing.`,
+              },
+              unit_amount: 19900, // $199.00 / month
+              recurring: {
+                interval: 'month',
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        client_reference_id: orgId,
+        customer_email: email,
+        metadata: {
+          organizationId: orgId,
+          companyName,
+          pilotCohort: 'founding-2026',
+        },
+        success_url: `https://aquaflow-plumbing-theta.vercel.app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `https://aquaflow-plumbing-theta.vercel.app/pilot?payment=canceled`,
+      });
+      if (session.url) return session.url;
+    } catch (stripeErr) {
+      console.warn('Stripe checkout session creation note:', stripeErr);
+    }
+  }
+  return `https://aquaflow-plumbing-theta.vercel.app/pricing?org=${orgId}&cohort=pilot199`;
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -93,8 +139,8 @@ export async function POST(
           technicianCount: prospect.technicianCount,
           painPoints: prospect.painPoints,
           notes: prospect.notes,
-          status: 'NEW',
-          source: 'outbound_prospector',
+          status: 'QUALIFIED',
+          source: 'cold_outbound',
           createdAt: prospect.createdAt,
           updatedAt: prospect.updatedAt,
         };
@@ -138,6 +184,12 @@ export async function POST(
       });
 
       const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${rawActivationToken}`;
+      const paymentLink = await generatePilotPaymentLink(
+        existingOrg.id,
+        existingOrg.name,
+        lead.email,
+        existingOrg.currency || 'USD'
+      );
 
       let emailSent = false;
       let emailError: string | null = null;
@@ -149,8 +201,8 @@ export async function POST(
           const emailRes = await resend.emails.send({
             from: fromEmail,
             to: lead.email,
-            subject: `🎉 AquaFlow Account Activation Link (${lead.companyName})`,
-            text: `Hi ${existingUser.firstName || 'there'},\n\nYour 3-minute one-time activation link is ready:\n🔗 ${activationLink}\n\n⚠️ Note: This activation link expires in 3 minutes for security.\n\nBest regards,\nThe AquaFlow Team`,
+            subject: `🎉 AquaFlow Founding Pilot Account & Activation (${lead.companyName})`,
+            text: `Hi ${existingUser.firstName || 'there'},\n\nYour AquaFlow dedicated operating system has been provisioned for ${lead.companyName}!\n\n1️⃣ 3-MINUTE ACCOUNT ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ Note: This activation link expires in 3 minutes for security.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nBest regards,\nThe AquaFlow Founding Team`,
           });
           if (!emailRes.error) emailSent = true;
           else emailError = emailRes.error.message;
@@ -162,8 +214,9 @@ export async function POST(
       return NextResponse.json({
         success: true,
         alreadyProvisioned: true,
-        message: `Fresh 3-minute activation link generated for ${lead.companyName}`,
+        message: `Fresh 3-minute activation link & payment link generated for ${lead.companyName}`,
         activationLink,
+        paymentLink,
         tokenExpiresIn: '3 minutes',
         tokenExpiresAt: tokenExpiresAt.toISOString(),
         emailSent,
@@ -172,6 +225,7 @@ export async function POST(
           id: existingOrg.id,
           name: existingOrg.name,
           slug: existingOrg.slug,
+          currency: existingOrg.currency,
         },
         user: {
           id: existingUser.id,
@@ -386,6 +440,12 @@ export async function POST(
     });
 
     const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${provisionResult.rawActivationToken}`;
+    const paymentLink = await generatePilotPaymentLink(
+      provisionResult.org.id,
+      provisionResult.org.name,
+      cleanEmail,
+      currency
+    );
 
     // 8. Update pilot lead status to ONBOARDED
     await updatePilotLeadStatus(
@@ -407,8 +467,8 @@ export async function POST(
         const emailRes = await resend.emails.send({
           from: fromEmail,
           to: lead.email,
-          subject: `🎉 Welcome to AquaFlow Founding Pilot — Activate Your Account (${lead.companyName})`,
-          text: `Hi ${firstName},\n\nWelcome to the AquaFlow Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n🔒 3-MINUTE ONE-TIME ACTIVATION LINK:\n${activationLink}\n\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\nWHAT IS READY FOR YOU:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance, feel free to reply directly to this email.\n\nBest regards,\nThe AquaFlow Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
+          subject: `🎉 Welcome to AquaFlow Founding Pilot — Activate & Lock In $199/mo (${lead.companyName})`,
+          text: `Hi ${firstName},\n\nWelcome to the AquaFlow Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n1️⃣ 3-MINUTE ONE-TIME ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nWHAT IS READY IN YOUR WORKSPACE:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance or a 10-minute setup walkthrough, reply directly to this email.\n\nBest regards,\nThe AquaFlow Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
         });
 
         if (emailRes.error) {
@@ -431,6 +491,7 @@ export async function POST(
       emailSent,
       emailError,
       activationLink,
+      paymentLink,
       tokenExpiresIn: '3 minutes',
       tokenExpiresAt: provisionResult.tokenExpiresAt.toISOString(),
       organization: {

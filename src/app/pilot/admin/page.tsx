@@ -80,6 +80,7 @@ interface ProvisionResponse {
   emailSent?: boolean;
   emailError?: string | null;
   activationLink?: string;
+  paymentLink?: string;
   tokenExpiresIn?: string;
   tokenExpiresAt?: string;
   organization?: {
@@ -124,6 +125,7 @@ export default function PilotAdminDashboard() {
   const [provisioningId, setProvisioningId] = useState<string | null>(null);
   const [provisionResult, setProvisionResult] = useState<ProvisionResponse | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedPayment, setCopiedPayment] = useState(false);
   const [adminKey, setAdminKey] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -1079,6 +1081,37 @@ export default function PilotAdminDashboard() {
                   </div>
                 )}
 
+                {/* $199/MO STRIPE SUBSCRIPTION PAYMENT LINK */}
+                {provisionResult.paymentLink && (
+                  <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5" /> 1-Click $199/mo Stripe Payment Link
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                        💳 Founding Pilot Cohort
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={provisionResult.paymentLink}
+                        className="flex-1 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-300 font-mono select-all outline-none"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(provisionResult.paymentLink!);
+                          setCopiedPayment(true);
+                          setTimeout(() => setCopiedPayment(false), 2500);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold shrink-0 hover:scale-[1.02] transition-all"
+                      >
+                        {copiedPayment ? 'Copied!' : 'Copy Payment Link'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {provisionResult.user?.tempPassword && (
                   <div className="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
                     <span className="text-slate-400 font-medium">Backup Temp Password:</span>
@@ -1096,7 +1129,7 @@ export default function PilotAdminDashboard() {
               <div className="flex items-center justify-between gap-3 pt-2">
                 <button
                   onClick={() => {
-                    const text = `AquaFlow Activation:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n3-Minute One-Time Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n\n(Note: Activation link expires in 3 minutes for security)`;
+                    const text = `AquaFlow Founding Pilot Onboarding:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n\n1️⃣ 3-Minute Account Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n(Note: Activation link expires in 3 minutes for security)\n\n2️⃣ 1-Click $199/mo Founding Pilot Subscription:\n${provisionResult.paymentLink || 'https://aquaflow-plumbing-theta.vercel.app/pricing'}\n\nDashboard Login: https://aquaflow-plumbing-theta.vercel.app/login`;
                     navigator.clipboard.writeText(text);
                     setCopiedKey(true);
                     setTimeout(() => setCopiedKey(false), 2500);
@@ -1104,7 +1137,7 @@ export default function PilotAdminDashboard() {
                   className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700 transition-all"
                 >
                   {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey ? 'Onboarding Message Copied!' : 'Copy Full Invite to Clipboard'}</span>
+                  <span>{copiedKey ? 'Full Invite Copied!' : 'Copy Full Invite (Activation + Payment)'}</span>
                 </button>
 
                 <button
