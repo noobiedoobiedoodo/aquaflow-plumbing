@@ -155,6 +155,13 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
     }
 
     if (res.error) {
+      if (res.error.message?.includes('daily email sending quota') || (res.error as any).name === 'daily_quota_exceeded') {
+        console.warn('⚠️ Resend Free Tier Daily Quota Reached (200/200 emails sent today).');
+        return {
+          success: false,
+          error: 'Resend Daily Free Tier Quota Reached (200/200 emails sent today). Resets at 00:00 UTC or upgrade at resend.com/billing.',
+        };
+      }
       console.error(`Resend dispatch error for ${prospect.email}:`, res.error);
       return { success: false, error: res.error.message };
     }
