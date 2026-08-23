@@ -91,18 +91,31 @@ export async function POST(req: NextRequest) {
     console.log(`Duplicate:   ${isDuplicate ? 'YES (Handled Gracefully)' : 'NO (Fresh Lead)'}`);
     console.log('====================================================');
 
-    // 2. Dispatches internal founder notification (non-blocking / fail-safe)
+    // 2. Dispatches notifications (applicant confirmation + founder alert, fail-safe / non-blocking)
     if (process.env.RESEND_API_KEY && !isDuplicate) {
       (async () => {
         try {
           const { Resend } = await import('resend');
           const resend = new Resend(process.env.RESEND_API_KEY);
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Pilot <onboarding@resend.dev>';
+
+          // A. Send Confirmation Email to Applicant
           await resend.emails.send({
-            from: 'AquaFlow Pilot <notifications@aquaflow.io>',
-            to: process.env.FOUNDER_ALERT_EMAIL || 'founder@aquaflow.io',
-            subject: `🚨 NEW PILOT APPLICATION: ${lead.companyName} (${lead.technicianCount})`,
-            text: `New Founding Pilot Application:\n\nCompany: ${lead.companyName}\nContact: ${lead.contactName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\nLocation: ${lead.city}, ${lead.province}\nTechnicians: ${lead.technicianCount}\nPain Points: ${lead.painPoints.join(', ')}\nSource: ${lead.utmSource || 'direct'}\nCampaign: ${lead.utmCampaign || 'direct'}\n\nLead ID: ${lead.id}`,
+            from: fromEmail,
+            to: lead.email,
+            subject: `We've received your AquaFlow Founding Pilot application (${lead.companyName})`,
+            text: `Hi ${lead.contactName},\n\nThank you for applying to join the AquaFlow Founding Pilot cohort ($199/month) for ${lead.companyName}.\n\nWe limit each founding cohort to just 3 commercial plumbing companies to ensure white-glove onboarding and direct founder support.\n\nWhat happens next:\n1. Our founding engineering team will review your application details.\n2. If selected, a founder will reach out directly via phone or email within 24 hours to schedule a brief 20-minute setup walkthrough.\n\nApplication Details:\n• Reference ID: ${lead.id}\n• Company: ${lead.companyName}\n• Location: ${lead.city}, ${lead.province}\n• Fleet Size: ${lead.technicianCount}\n\nIf you have any urgent questions, feel free to reply directly to this email.\n\nBest regards,\nThe AquaFlow Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
           });
+
+          // B. Send Alert Email to Founder
+          if (process.env.FOUNDER_ALERT_EMAIL) {
+            await resend.emails.send({
+              from: fromEmail,
+              to: process.env.FOUNDER_ALERT_EMAIL,
+              subject: `🚨 NEW PILOT APPLICATION: ${lead.companyName} (${lead.technicianCount})`,
+              text: `New Founding Pilot Application Received:\n\nCompany: ${lead.companyName}\nContact: ${lead.contactName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\nLocation: ${lead.city}, ${lead.province}\nTechnicians: ${lead.technicianCount}\nPain Points: ${lead.painPoints.join(', ')}\nSource: ${lead.utmSource || 'direct'}\nCampaign: ${lead.utmCampaign || 'direct'}\n\nLead ID: ${lead.id}\nManage in dashboard: /pilot/admin`,
+            });
+          }
         } catch (emailErr) {
           console.warn('Non-blocking lead notification email error:', emailErr);
         }

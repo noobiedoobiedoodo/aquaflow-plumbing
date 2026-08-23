@@ -295,3 +295,54 @@ export async function getPilotLeads(): Promise<PilotLeadRecord[]> {
     return [];
   }
 }
+
+/**
+ * Updates a pilot lead's status and optional notes
+ */
+export async function updatePilotLeadStatus(
+  id: string,
+  status: PilotLeadStatus,
+  notes?: string
+): Promise<PilotLeadRecord | null> {
+  await ensurePilotLeadTable();
+  const now = new Date();
+
+  try {
+    if (notes !== undefined) {
+      await prisma.$executeRawUnsafe(
+        `UPDATE pilot_applications SET status = $1, notes = $2, updated_at = $3 WHERE id = $4`,
+        status,
+        notes,
+        now,
+        id
+      );
+    } else {
+      await prisma.$executeRawUnsafe(
+        `UPDATE pilot_applications SET status = $1, updated_at = $2 WHERE id = $3`,
+        status,
+        now,
+        id
+      );
+    }
+  } catch (err) {
+    console.error('Failed to update lead status in DB:', err);
+  }
+
+  // Update backup file
+  try {
+    const list = await getPilotLeads();
+    const target = list.find((l) => l.id === id);
+    if (target) {
+      target.status = status;
+      if (notes !== undefined) target.notes = notes;
+      target.updatedAt = now.toISOString();
+      await syncToBackupStorage(target);
+      return target;
+    }
+  } catch (e) {
+    console.warn('Backup file update error:', e);
+  }
+
+  return null;
+}
+
