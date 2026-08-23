@@ -41,14 +41,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const stateFilter = body.state || 'ALL';
     const limit = typeof body.limit === 'number' ? body.limit : 50;
+    const autoOutreach = body.autoOutreach !== false;
 
-    const result = await importScrapedProspects(stateFilter, limit);
+    const result = await importScrapedProspects(stateFilter, limit, autoOutreach);
     const prospects = await getColdProspects();
 
     return NextResponse.json({
       success: true,
       message: `Scraper & Prospector ran successfully for ${stateFilter}`,
       added: result.added,
+      emailed: result.emailed,
+      source: result.source,
       total: result.total,
       prospects,
     });

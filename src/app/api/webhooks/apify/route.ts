@@ -97,6 +97,32 @@ export async function POST(req: NextRequest) {
           now
         );
         imported++;
+
+        // AUTOMATIC COLD EMAIL OUTREACH VIA RESEND
+        if (process.env.RESEND_API_KEY) {
+          try {
+            const { sendProspectOutreachEmail } = await import('@/lib/services/outreach-service');
+            await sendProspectOutreachEmail({
+              id,
+              companyName,
+              contactName,
+              title,
+              email: email.toLowerCase().trim(),
+              phone,
+              website,
+              city,
+              state,
+              technicianCount,
+              painPoints,
+              interestLevel: 'UNDECIDED',
+              outreachStatus: 'NOT_CONTACTED',
+              createdAt: now.toISOString(),
+              updatedAt: now.toISOString(),
+            });
+          } catch (mErr) {
+            console.warn(`Apify lead auto-outreach dispatch note for ${email}:`, mErr);
+          }
+        }
       } catch (e) {
         console.warn('Apify item insert error:', e);
       }

@@ -119,6 +119,7 @@ export default function PilotAdminDashboard() {
   const [outreachFilter, setOutreachFilter] = useState<string>('ALL');
   const [isSendingCampaign, setIsSendingCampaign] = useState(false);
   const [sendingSingleId, setSendingSingleId] = useState<string | null>(null);
+  const [autoOutreachOnScrape, setAutoOutreachOnScrape] = useState<boolean>(true);
 
   // Shared State
   const [loading, setLoading] = useState(true);
@@ -267,13 +268,21 @@ export default function PilotAdminDashboard() {
       const res = await fetch('/api/pilot/prospects', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ state: scrapingState, limit: scrapingLimit }),
+        body: JSON.stringify({
+          state: scrapingState,
+          limit: scrapingLimit,
+          autoOutreach: autoOutreachOnScrape,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         setProspects(data.prospects);
-        setScrapeNotification(`🎉 Scraped ${data.added} REAL live plumbing contractors from Google Maps! (Total: ${data.total})`);
-        setTimeout(() => setScrapeNotification(null), 6000);
+        if (data.emailed && data.emailed > 0) {
+          setScrapeNotification(`🎉 Scraped ${data.added} REAL contractors & 🚀 automatically dispatched ${data.emailed} cold emails via Resend! (Total: ${data.total})`);
+        } else {
+          setScrapeNotification(`🎉 Scraped ${data.added} REAL live plumbing contractors from Google Maps! (Total: ${data.total})`);
+        }
+        setTimeout(() => setScrapeNotification(null), 8000);
       } else {
         alert(`Scraping failed: ${data.message}`);
       }
@@ -907,24 +916,35 @@ export default function PilotAdminDashboard() {
                   <option value={250}>🚀 250 Leads / Run (Max Surge)</option>
                 </select>
 
+                {/* AUTO-PILOT TOGGLE */}
+                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200 cursor-pointer select-none hover:border-cyan-500/50 transition-all">
+                  <input
+                    type="checkbox"
+                    checked={autoOutreachOnScrape}
+                    onChange={(e) => setAutoOutreachOnScrape(e.target.checked)}
+                    className="w-4 h-4 rounded text-cyan-400 accent-cyan-500 cursor-pointer"
+                  />
+                  <span>🤖 Auto-Email on Scrape</span>
+                </label>
+
                 <button
                   onClick={handleRunScraper}
                   disabled={isScraping}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   <Zap className={`w-4 h-4 ${isScraping ? 'animate-spin' : ''}`} />
-                  <span>{isScraping ? `Scraping ${scrapingLimit} Contractors...` : `⚡ 1. Scrape Leads (${scrapingLimit})`}</span>
+                  <span>{isScraping ? `Scraping & Auto-Emailing ${scrapingLimit}...` : `⚡ Scrape & Auto-Email (${scrapingLimit})`}</span>
                 </button>
 
                 {/* AUTOMATED OUTREACH CAMPAIGN BUTTON */}
                 <button
                   onClick={handleLaunchCampaign}
                   disabled={isSendingCampaign || prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length === 0}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
-                  title="Automatically dispatches personalized cold emails via Resend to uncontacted contractors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs hover:bg-slate-700 hover:text-white transition-all disabled:opacity-40"
+                  title="Dispatches personalized cold emails via Resend to any remaining uncontacted contractors"
                 >
                   <Mail className={`w-4 h-4 ${isSendingCampaign ? 'animate-bounce' : ''}`} />
-                  <span>{isSendingCampaign ? 'Sending Campaign...' : `🚀 2. Auto-Send Emails (${prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length})`}</span>
+                  <span>{isSendingCampaign ? 'Sending...' : `Bulk Resend (${prospects.filter((p) => p.outreachStatus === 'NOT_CONTACTED').length})`}</span>
                 </button>
               </div>
             </div>

@@ -226,8 +226,9 @@ async function scrapeLiveSerpApiPlumbers(
  */
 export async function importScrapedProspects(
   stateFilter: string = 'ALL',
-  limit: number = 50
-): Promise<{ added: number; total: number; source: 'SERPAPI_LIVE' | 'PROSPECT_DATABASE' }> {
+  limit: number = 50,
+  autoOutreach: boolean = true
+): Promise<{ added: number; emailed: number; total: number; source: 'SERPAPI_LIVE' | 'PROSPECT_DATABASE' }> {
   await ensureColdProspectsTable();
 
   const targetStates = stateFilter !== 'ALL' && US_CAN_REGIONAL_MARKETS[stateFilter]
@@ -292,6 +293,8 @@ export async function importScrapedProspects(
   }
 
   let added = 0;
+  let emailed = 0;
+
   for (const p of finalPool) {
     try {
       const id = randomUUID();
@@ -322,13 +325,45 @@ export async function importScrapedProspects(
         now
       );
       added++;
+
+      // INSTANT AUTONOMOUS OUTREACH DISPATCH
+      if (autoOutreach && process.env.RESEND_API_KEY) {
+        try {
+          const { sendProspectOutreachEmail } = await import('./outreach-service');
+          const prospectObj: ColdProspect = {
+            id,
+            companyName: p.companyName,
+            contactName: p.contactName,
+            title: p.title,
+            email: p.email,
+            phone: p.phone,
+            website: p.website,
+            city: p.city,
+            state: p.state,
+            technicianCount: p.technicianCount,
+            painPoints: p.painPoints,
+            interestLevel: 'UNDECIDED',
+            outreachStatus: 'NOT_CONTACTED',
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+          };
+          const sendRes = await sendProspectOutreachEmail(prospectObj);
+          if (sendRes.success) {
+            emailed++;
+          }
+          // Micro-throttle to preserve deliverability
+          await new Promise((r) => setTimeout(r, 200));
+        } catch (mailErr) {
+          console.warn(`Auto-outreach dispatch note for ${p.email}:`, mailErr);
+        }
+      }
     } catch (e) {
       console.warn('Import error:', e);
     }
   }
 
   const all = await getColdProspects();
-  return { added, total: all.length, source };
+  return { added, emailed, total: all.length, source };
 }
 
 export async function updateColdProspectQualification(
