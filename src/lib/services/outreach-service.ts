@@ -15,7 +15,15 @@ export function generateColdEmailContent(payload: OutreachEmailPayload) {
   const { recipientName, companyName, city, state, painPoints, technicianCount } = payload;
   const firstName = recipientName.split(' ')[0] || recipientName || 'there';
   const primaryPain = painPoints[0] || 'dispatch phone tag and late invoice deposits';
-  const pilotUrl = `https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company=${encodeURIComponent(companyName)}&utm_campaign=${state.toLowerCase()}_pilot`;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    'https://aquaflow-plumbing-theta.vercel.app';
+
+  const pilotUrl = `${baseUrl}/pilot?utm_source=cold_outbound&company=${encodeURIComponent(companyName)}&utm_campaign=${state.toLowerCase()}_pilot`;
+  const privacyUrl = `${baseUrl}/privacy`;
+  const domainDisplay = baseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
   const subject = `Quick question regarding dispatch at ${companyName} (${city})`;
 
@@ -35,11 +43,11 @@ ${pilotUrl}
 Best regards,
 Travis Vance
 Founding Team | AquaFlow Plumbing Operating System
-https://aquaflowplumbing.com
+${baseUrl}
 
 ---
 AquaFlow Systems Inc. | 100 Innovation Way, Dallas TX / Winnipeg MB
-To opt out of pilot notifications, reply "Unsubscribe" or visit https://aquaflow-plumbing-theta.vercel.app/privacy`;
+To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
 
   const html = `
 <!DOCTYPE html>
@@ -72,9 +80,9 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit https://aquaflow
 
     <div class="footer">
       <strong>Travis Vance</strong> • Founding Team<br>
-      AquaFlow Plumbing Operating System • <a href="https://aquaflowplumbing.com" style="color: #0284c7;">aquaflowplumbing.com</a><br><br>
+      AquaFlow Plumbing Operating System • <a href="${baseUrl}" style="color: #0284c7;">${domainDisplay}</a><br><br>
       AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br>
-      <em>To opt out of future notifications, reply "Unsubscribe" or manage preferences <a href="https://aquaflow-plumbing-theta.vercel.app/privacy" style="color: #64748b;">here</a>.</em>
+      <em>To opt out of future notifications, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
     </div>
   </div>
 </body>
