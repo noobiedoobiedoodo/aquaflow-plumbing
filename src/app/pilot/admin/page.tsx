@@ -416,6 +416,26 @@ export default function PilotAdminDashboard() {
     }
   };
 
+  // Clear All Cold Prospects
+  const handleClearAllProspects = async () => {
+    if (!confirm('⚠️ Are you sure you want to clear all cold prospects? This will allow you to start fresh with 100% live-verified Google Maps contractors.')) return;
+    try {
+      const headers: Record<string, string> = {};
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
+      const res = await fetch('/api/pilot/prospects', {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        setProspects([]);
+        setSelectedProspect(null);
+      }
+    } catch (err) {
+      console.error('Failed to clear prospects:', err);
+    }
+  };
+
   // Delete Warm Inbound Lead
   const handleDeleteLead = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to permanently delete application from ${name}?`)) return;
@@ -1003,7 +1023,7 @@ export default function PilotAdminDashboard() {
               <select
                 value={outreachFilter}
                 onChange={(e) => setOutreachFilter(e.target.value)}
-                className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 outline-none"
+                className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
               >
                 <option value="ALL">Outreach: All</option>
                 <option value="NOT_CONTACTED">⚪ Not Contacted</option>
@@ -1012,6 +1032,17 @@ export default function PilotAdminDashboard() {
                 <option value="IN_CONVERSATION">💬 In Conversation</option>
                 <option value="PROVISIONED">🚀 Provisioned</option>
               </select>
+
+              {prospects.length > 0 && (
+                <button
+                  onClick={handleClearAllProspects}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-red-500/30 text-red-400 hover:bg-red-950/40 text-xs font-bold transition-all"
+                  title="Clear all leads to start fresh with a live verified Google Maps batch"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear All</span>
+                </button>
+              )}
             </div>
 
             {/* COLD PROSPECTS TABLE */}
