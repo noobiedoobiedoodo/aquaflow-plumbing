@@ -1516,6 +1516,77 @@ export default function PilotAdminDashboard() {
                   </div>
                 </div>
 
+                {/* OUTREACH EMAIL INSPECTION & VERIFICATION CARD */}
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/30 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-cyan-400" />
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Outreach Email Inspection Log
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        selectedProspect.outreachStatus === 'EMAIL_SENT'
+                          ? 'bg-blue-950/80 text-blue-300 border-blue-500/40'
+                          : 'bg-slate-800 text-slate-400 border-slate-700'
+                      }`}
+                    >
+                      {selectedProspect.outreachStatus === 'EMAIL_SENT'
+                        ? '🔵 Dispatched via Resend'
+                        : '⚪ Not Yet Dispatched'}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] space-y-1 text-slate-300 bg-slate-950/80 p-3 rounded-xl border border-slate-800 font-mono">
+                    <div>
+                      <span className="text-slate-500">To:</span>{' '}
+                      <span className="text-cyan-300">{selectedProspect.contactName}</span> &lt;
+                      <span className="text-emerald-300">{selectedProspect.email}</span>&gt;
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Subject:</span>{' '}
+                      <span className="text-white font-sans font-semibold">
+                        Quick question regarding dispatch at {selectedProspect.companyName} ({selectedProspect.city})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* FORMATTED EMAIL CARD PREVIEW */}
+                  <div className="p-3.5 rounded-xl bg-white text-slate-900 space-y-2 text-xs shadow-inner">
+                    <div className="inline-block px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200">
+                      🚀 AquaFlow Founding Partner Program • {selectedProspect.city}, {selectedProspect.state}
+                    </div>
+                    <div className="font-bold text-slate-900 text-sm">
+                      Hi {selectedProspect.contactName.split(' ')[0] || selectedProspect.contactName},
+                    </div>
+                    <p className="text-slate-700 leading-relaxed">
+                      I noticed <strong>{selectedProspect.companyName}</strong> is running a high-demand plumbing operation in <strong>{selectedProspect.city}</strong>.
+                    </p>
+                    <p className="text-slate-700 leading-relaxed">
+                      We built AquaFlow specifically for independent trade businesses managing <strong>{selectedProspect.technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>{selectedProspect.painPoints[0]?.toLowerCase() || 'dispatch phone tag'}</strong>.
+                    </p>
+                    <p className="text-slate-700 leading-relaxed">
+                      We are opening <strong>3 Founding Partner spots</strong> in your region at a locked-in <strong>$199/month lifetime rate</strong> (includes multi-tech dispatch, automated customer GPS arrival texts, and 1-click mobile invoice collection).
+                    </p>
+                    <div className="py-1">
+                      <a
+                        href={`https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company=${encodeURIComponent(selectedProspect.companyName)}&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot`}
+                        target="_blank"
+                        className="inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white font-bold text-xs no-underline shadow-sm"
+                      >
+                        Claim Founding Pilot Spot ($199/mo) →
+                      </a>
+                    </div>
+                    <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-200">
+                      <strong>Personalized Pilot Link:</strong>{' '}
+                      <span className="font-mono text-slate-600 break-all">
+                        https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company={encodeURIComponent(selectedProspect.companyName)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
                     Rep Outreach Notes:
@@ -1525,7 +1596,7 @@ export default function PilotAdminDashboard() {
                     onBlur={(e) => handleUpdateProspect(selectedProspect.id, { notes: e.target.value })}
                     placeholder="Enter call notes or objections here..."
                     className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 outline-none focus:border-emerald-500"
-                    rows={3}
+                    rows={2}
                   />
                 </div>
               </div>
@@ -1540,18 +1611,29 @@ export default function PilotAdminDashboard() {
                   <span>{provisioningId === selectedProspect.id ? 'Provisioning...' : '🚀 Auto-Provision Org'}</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    const text = `Hi ${selectedProspect.contactName},\n\nI noticed ${selectedProspect.companyName} is running a strong plumbing team in ${selectedProspect.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
-                    navigator.clipboard.writeText(text);
-                    handleUpdateProspect(selectedProspect.id, { outreachStatus: 'EMAIL_SENT' });
-                    alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
-                  }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy Cold Script</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleSendSingleOutreach(selectedProspect)}
+                    disabled={sendingSingleId === selectedProspect.id}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
+                  >
+                    <Mail className={`w-3.5 h-3.5 ${sendingSingleId === selectedProspect.id ? 'animate-bounce' : ''}`} />
+                    <span>{sendingSingleId === selectedProspect.id ? 'Sending...' : selectedProspect.outreachStatus === 'EMAIL_SENT' ? 'Resend Email' : 'Send Cold Email'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const text = `Hi ${selectedProspect.contactName},\n\nI noticed ${selectedProspect.companyName} is running a strong plumbing team in ${selectedProspect.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
+                      navigator.clipboard.writeText(text);
+                      handleUpdateProspect(selectedProspect.id, { outreachStatus: 'EMAIL_SENT' });
+                      alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Script</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
