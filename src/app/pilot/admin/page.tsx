@@ -548,7 +548,7 @@ export default function PilotAdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#06090E] text-slate-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-[1600px] w-full mx-auto space-y-6">
 
         {/* TOP BAR */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-800">
@@ -696,17 +696,17 @@ export default function PilotAdminDashboard() {
             </div>
 
             {/* LEADS TABLE */}
-            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl">
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[980px]">
+                  <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
                     <tr>
-                      <th className="py-3.5 px-4">Company & Contact</th>
-                      <th className="py-3.5 px-4">Location</th>
-                      <th className="py-3.5 px-4">Fleet</th>
-                      <th className="py-3.5 px-4">Source</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
+                      <th className="py-3.5 px-4 min-w-[260px]">Company & Contact</th>
+                      <th className="py-3.5 px-4 min-w-[140px]">Location</th>
+                      <th className="py-3.5 px-4 min-w-[90px]">Fleet</th>
+                      <th className="py-3.5 px-4 min-w-[100px]">Source</th>
+                      <th className="py-3.5 px-4 min-w-[150px]">Status</th>
+                      <th className="py-3.5 px-4 text-right min-w-[320px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-200">
@@ -889,17 +889,17 @@ export default function PilotAdminDashboard() {
             </div>
 
             {/* COLD PROSPECTS TABLE */}
-            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+            <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl">
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[1280px]">
+                  <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
                     <tr>
-                      <th className="py-3.5 px-4">Company & Decision Maker</th>
-                      <th className="py-3.5 px-4">State & City</th>
-                      <th className="py-3.5 px-4">Fleet</th>
-                      <th className="py-3.5 px-4">Traffic Light Interest</th>
-                      <th className="py-3.5 px-4">Outreach Status</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
+                      <th className="py-3.5 px-4 min-w-[280px]">Company & Decision Maker</th>
+                      <th className="py-3.5 px-4 min-w-[140px]">State & City</th>
+                      <th className="py-3.5 px-4 min-w-[90px]">Fleet</th>
+                      <th className="py-3.5 px-4 min-w-[230px]">Traffic Light Interest</th>
+                      <th className="py-3.5 px-4 min-w-[180px]">Outreach Status</th>
+                      <th className="py-3.5 px-4 text-right min-w-[340px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-200">
@@ -1033,7 +1033,7 @@ export default function PilotAdminDashboard() {
         {/* PROVISION SUCCESS MODAL */}
         {provisionResult && (
           <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-500/50 shadow-2xl space-y-5">
+            <div className="glass rounded-3xl p-6 sm:p-8 max-w-xl max-h-[90vh] overflow-y-auto w-full border border-emerald-500/50 shadow-2xl space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
@@ -1181,7 +1181,7 @@ export default function PilotAdminDashboard() {
         {/* DETAILS MODAL FOR WARM LEAD */}
         {selectedLead && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-cyan-500/40 shadow-2xl relative space-y-5">
+            <div className="glass rounded-3xl p-6 sm:p-8 max-w-xl max-h-[90vh] overflow-y-auto w-full border border-cyan-500/40 shadow-2xl relative space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div>
                   <span className="text-xs font-mono text-cyan-400">Lead ID: {selectedLead.id}</span>
@@ -1282,7 +1282,7 @@ export default function PilotAdminDashboard() {
         {/* DETAILS MODAL FOR COLD PROSPECT */}
         {selectedProspect && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="glass rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-emerald-500/40 shadow-2xl relative space-y-5">
+            <div className="glass rounded-3xl p-6 sm:p-8 max-w-xl max-h-[90vh] overflow-y-auto w-full border border-emerald-500/40 shadow-2xl relative space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div>
                   <div className="flex items-center gap-2">
