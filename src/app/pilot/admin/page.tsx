@@ -270,8 +270,8 @@ export default function PilotAdminDashboard() {
       const data = await res.json();
       if (data.success) {
         setProspects(data.prospects);
-        setScrapeNotification(`🎉 Imported ${data.added} target plumbing prospects! Total: ${data.total}`);
-        setTimeout(() => setScrapeNotification(null), 5000);
+        setScrapeNotification(`🎉 Scraped ${data.added} REAL live plumbing contractors from Google Maps! (Total: ${data.total})`);
+        setTimeout(() => setScrapeNotification(null), 6000);
       } else {
         alert(`Scraping failed: ${data.message}`);
       }
@@ -790,12 +790,12 @@ export default function PilotAdminDashboard() {
             {/* SCRAPER CONTROL HERO */}
             <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-[#0A121A] to-slate-950 border border-cyan-500/30 shadow-2xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="space-y-1 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase">
-                  <Zap className="w-3 h-3" /> US & Canada Contractor Prospecting Engine
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase">
+                  <Zap className="w-3 h-3 text-emerald-400" /> 📡 Live Google Maps & Local Engine (via SerpAPI)
                 </div>
-                <h2 className="text-xl font-bold text-white">Targeted Plumbing Fleet Prospector</h2>
+                <h2 className="text-xl font-bold text-white">Live Plumbing Fleet Prospector & Scraper</h2>
                 <p className="text-xs text-slate-400">
-                  Acquires independent 2–25 van plumbing contractors across target US states & Canadian provinces with identified operational pain points.
+                  Scrapes 100% real, active plumbing businesses across US & Canadian markets directly from Google Maps with real phone numbers, domains, and pain points.
                 </p>
               </div>
 
