@@ -96,10 +96,53 @@ export async function POST(
     if (existingUser && existingUser.memberships.length > 0) {
       const existingOrg = existingUser.memberships[0].organization;
       await updatePilotLeadStatus(lead.id, 'ONBOARDED', `Existing Org: ${existingOrg.name}`);
+
+      // Generate a fresh 3-Minute One-Time Secure Activation Token
+      const rawActivationToken = randomBytes(32).toString('hex');
+      const { hashToken } = await import('@/lib/auth/customer-session');
+      const tokenHash = hashToken(rawActivationToken);
+      const tokenExpiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes strictly
+
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: existingUser.id,
+          organizationId: existingOrg.id,
+          tokenHash,
+          expiresAt: tokenExpiresAt,
+        },
+      });
+
+      const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${rawActivationToken}`;
+
+      let emailSent = false;
+      let emailError: string | null = null;
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const { Resend } = await import('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Onboarding <onboarding@resend.dev>';
+          const emailRes = await resend.emails.send({
+            from: fromEmail,
+            to: lead.email,
+            subject: `🎉 AquaFlow Account Activation Link (${lead.companyName})`,
+            text: `Hi ${existingUser.firstName || 'there'},\n\nYour 3-minute one-time activation link is ready:\n🔗 ${activationLink}\n\n⚠️ Note: This activation link expires in 3 minutes for security.\n\nBest regards,\nThe AquaFlow Team`,
+          });
+          if (!emailRes.error) emailSent = true;
+          else emailError = emailRes.error.message;
+        } catch (e: any) {
+          emailError = e?.message;
+        }
+      }
+
       return NextResponse.json({
         success: true,
         alreadyProvisioned: true,
-        message: `Account already provisioned for ${lead.companyName}`,
+        message: `Fresh 3-minute activation link generated for ${lead.companyName}`,
+        activationLink,
+        tokenExpiresIn: '3 minutes',
+        tokenExpiresAt: tokenExpiresAt.toISOString(),
+        emailSent,
+        emailError,
         organization: {
           id: existingOrg.id,
           name: existingOrg.name,
@@ -108,7 +151,10 @@ export async function POST(
         user: {
           id: existingUser.id,
           email: existingUser.email,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
         },
+        loginUrl: 'https://aquaflow-plumbing-theta.vercel.app/login',
       });
     }
 
