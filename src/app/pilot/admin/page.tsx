@@ -112,6 +112,7 @@ export default function PilotAdminDashboard() {
   const [prospects, setProspects] = useState<ColdProspect[]>([]);
   const [selectedProspect, setSelectedProspect] = useState<ColdProspect | null>(null);
   const [scrapingState, setScrapingState] = useState<string>('ALL');
+  const [scrapingLimit, setScrapingLimit] = useState<number>(50);
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeNotification, setScrapeNotification] = useState<string | null>(null);
   const [interestFilter, setInterestFilter] = useState<string>('ALL');
@@ -264,7 +265,7 @@ export default function PilotAdminDashboard() {
       const res = await fetch('/api/pilot/prospects', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ state: scrapingState }),
+        body: JSON.stringify({ state: scrapingState, limit: scrapingLimit }),
       });
       const data = await res.json();
       if (data.success) {
@@ -787,29 +788,50 @@ export default function PilotAdminDashboard() {
         {activeTab === 'cold' && (
           <div className="space-y-6">
             {/* SCRAPER CONTROL HERO */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-[#0A121A] to-slate-950 border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-[#0A121A] to-slate-950 border border-cyan-500/30 shadow-2xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="space-y-1 max-w-xl">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase">
-                  <Zap className="w-3 h-3" /> US Contractor Acquisition Engine
+                  <Zap className="w-3 h-3" /> US & Canada Contractor Prospecting Engine
                 </div>
-                <h2 className="text-xl font-bold text-white">Targeted US Plumbing Prospector</h2>
+                <h2 className="text-xl font-bold text-white">Targeted Plumbing Fleet Prospector</h2>
                 <p className="text-xs text-slate-400">
-                  Scrapes independent 2–15 van plumbing companies across high-volume US states with qualified pain points and contact details.
+                  Acquires independent 2–25 van plumbing contractors across target US states & Canadian provinces with identified operational pain points.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
+                {/* STATE / REGION SELECTOR */}
                 <select
                   value={scrapingState}
                   onChange={(e) => setScrapingState(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white outline-none"
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white outline-none cursor-pointer"
                 >
-                  <option value="ALL">🇺🇸 All Target US States</option>
-                  <option value="TX">Texas (Houston, Dallas, Austin, San Antonio)</option>
-                  <option value="FL">Florida (Tampa, Miami, Orlando, Jax)</option>
-                  <option value="CA">California (San Diego, SF, LA)</option>
-                  <option value="OH">Ohio & Midwest (Columbus, Cincy, Chicago)</option>
-                  <option value="GA">Georgia & Southeast (Atlanta, Charlotte, Nashville)</option>
+                  <option value="ALL">🌎 All Target Markets (US & Canada)</option>
+                  <option value="TX">🇺🇸 Texas (Houston, Dallas, Austin, San Antonio)</option>
+                  <option value="FL">🇺🇸 Florida (Tampa, Miami, Orlando, Jax)</option>
+                  <option value="CA">🇺🇸 California (San Diego, SF, LA, Sacramento)</option>
+                  <option value="OH">🇺🇸 Ohio & Midwest (Columbus, Cincinnati, Cleveland)</option>
+                  <option value="IL">🇺🇸 Illinois (Chicago, Naperville, Aurora)</option>
+                  <option value="GA">🇺🇸 Georgia (Atlanta, Savannah, Augusta)</option>
+                  <option value="NC">🇺🇸 North Carolina (Charlotte, Raleigh, Greensboro)</option>
+                  <option value="TN">🇺🇸 Tennessee (Nashville, Memphis, Knoxville)</option>
+                  <option value="NY">🇺🇸 New York (Buffalo, Rochester, Albany)</option>
+                  <option value="AZ">🇺🇸 Arizona (Phoenix, Tucson, Scottsdale)</option>
+                  <option value="ON">🇨🇦 Ontario (Toronto, Ottawa, Mississauga)</option>
+                  <option value="BC">🇨🇦 British Columbia (Vancouver, Victoria, Surrey)</option>
+                  <option value="AB">🇨🇦 Alberta (Calgary, Edmonton, Red Deer)</option>
+                </select>
+
+                {/* BATCH SIZE SELECTOR */}
+                <select
+                  value={scrapingLimit}
+                  onChange={(e) => setScrapingLimit(Number(e.target.value))}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-xs font-bold text-cyan-300 outline-none cursor-pointer"
+                >
+                  <option value={25}>📦 25 Leads / Run</option>
+                  <option value={50}>📦 50 Leads / Run (Recommended)</option>
+                  <option value={100}>⚡ 100 Leads / Run (High Volume)</option>
+                  <option value={250}>🚀 250 Leads / Run (Max Surge)</option>
                 </select>
 
                 <button
@@ -818,7 +840,7 @@ export default function PilotAdminDashboard() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   <Zap className={`w-4 h-4 ${isScraping ? 'animate-spin' : ''}`} />
-                  <span>{isScraping ? 'Scraping US Contractors...' : '⚡ 1-Click Run Prospector'}</span>
+                  <span>{isScraping ? `Scraping ${scrapingLimit} Contractors...` : `⚡ Run Prospector (${scrapingLimit} Leads)`}</span>
                 </button>
               </div>
             </div>
@@ -891,12 +913,12 @@ export default function PilotAdminDashboard() {
             {/* COLD PROSPECTS TABLE */}
             <div className="glass rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl">
               <div className="w-full overflow-x-auto">
-                <table className="w-full text-left text-xs min-w-[1280px]">
+                <table className="w-full text-left text-xs min-w-[1400px]">
                   <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
                     <tr>
                       <th className="py-3.5 px-4 min-w-[280px]">Company & Decision Maker</th>
-                      <th className="py-3.5 px-4 min-w-[140px]">State & City</th>
-                      <th className="py-3.5 px-4 min-w-[90px]">Fleet</th>
+                      <th className="py-3.5 px-4 min-w-[140px]">State / Region</th>
+                      <th className="py-3.5 px-4 min-w-[260px]">Fleet & Pain Points</th>
                       <th className="py-3.5 px-4 min-w-[230px]">Traffic Light Interest</th>
                       <th className="py-3.5 px-4 min-w-[180px]">Outreach Status</th>
                       <th className="py-3.5 px-4 text-right min-w-[340px]">Actions</th>
@@ -912,13 +934,13 @@ export default function PilotAdminDashboard() {
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-white text-sm">{p.companyName}</span>
                               {p.website && (
-                                <a href={p.website} target="_blank" className="text-slate-500 hover:text-cyan-400">
+                                <a href={p.website} target="_blank" className="text-slate-500 hover:text-cyan-400" title="Visit Website">
                                   <Globe className="w-3.5 h-3.5" />
                                 </a>
                               )}
                             </div>
                             <div className="text-slate-400 text-xs mt-0.5">
-                              {p.contactName} ({p.title}) • {p.email} • {p.phone}
+                              {p.contactName} ({p.title}) • <span className="text-cyan-400">{p.email}</span> • {p.phone}
                             </div>
                           </td>
 
@@ -929,10 +951,19 @@ export default function PilotAdminDashboard() {
                             <span className="text-slate-300">{p.city}</span>
                           </td>
 
-                          <td className="py-4 px-4 whitespace-nowrap">
-                            <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                              {p.technicianCount}
-                            </span>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-200">
+                                {p.technicianCount}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1 max-w-[250px]">
+                              {Array.isArray(p.painPoints) && p.painPoints.slice(0, 2).map((pp) => (
+                                <span key={pp} className="px-1.5 py-0.5 rounded bg-red-950/40 border border-red-500/20 text-red-300 text-[10px] truncate max-w-[240px]">
+                                  {pp}
+                                </span>
+                              ))}
+                            </div>
                           </td>
 
                           {/* TRAFFIC LIGHT INTEREST PICKER */}

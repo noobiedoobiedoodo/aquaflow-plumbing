@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const stateFilter = body.state || 'ALL';
+    const limit = typeof body.limit === 'number' ? body.limit : 50;
 
-    const result = await importScrapedProspects(stateFilter);
+    const result = await importScrapedProspects(stateFilter, limit);
     const prospects = await getColdProspects();
 
     return NextResponse.json({
