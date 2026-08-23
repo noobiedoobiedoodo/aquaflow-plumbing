@@ -29,6 +29,8 @@
     "@stripe/react-stripe-js": "^6.8.1",
     "@stripe/stripe-js": "^9.13.0",
     "@upstash/redis": "^1.38.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "bullmq": "^6.1.1",
