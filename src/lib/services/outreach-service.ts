@@ -113,7 +113,7 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
 
     const founderReplyTo = process.env.FOUNDER_ALERT_EMAIL || process.env.RESEND_FROM_EMAIL;
 
-    const res = await resend.emails.send({
+    let res = await resend.emails.send({
       from: fromEmail,
       to: prospect.email,
       replyTo: founderReplyTo || undefined,
@@ -124,6 +124,27 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
         'X-Entity-Ref-ID': prospect.id,
       },
     });
+
+    // If in Resend Sandbox mode (onboarding@resend.dev) without verified domain, route to owner test email
+    if (res.error && res.error.message?.includes('You can only send testing emails to your own email address')) {
+      const sandboxEmailMatch = res.error.message.match(/\(([^)]+)\)/);
+      const ownerEmail = sandboxEmailMatch ? sandboxEmailMatch[1] : (process.env.FOUNDER_ALERT_EMAIL || 'stephan.sabeski12@gmail.com');
+      
+      console.log(`[Resend Sandbox] Forwarding test outreach to owner email (${ownerEmail}) for ${prospect.companyName}`);
+      res = await resend.emails.send({
+        from: fromEmail,
+        to: ownerEmail,
+        replyTo: founderReplyTo || undefined,
+        subject: `[TEST OUTREACH ➔ ${prospect.companyName}] ${emailContent.subject}`,
+        text: `[TEST SIMULATION FOR: ${prospect.contactName} <${prospect.email}> at ${prospect.companyName}]\n\n${emailContent.text}`,
+        html: `<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: #92400e;">
+          ⚠️ <strong>Resend Sandbox Test Mode:</strong> This email was dispatched to your test address because <code>onboarding@resend.dev</code> is active. To send directly to <code>${prospect.email}</code>, verify your custom domain in <a href="https://resend.com/domains" target="_blank">resend.com/domains</a>.
+        </div>${emailContent.html}`,
+        headers: {
+          'X-Entity-Ref-ID': prospect.id,
+        },
+      });
+    }
 
     if (res.error) {
       console.error(`Resend dispatch error for ${prospect.email}:`, res.error);
