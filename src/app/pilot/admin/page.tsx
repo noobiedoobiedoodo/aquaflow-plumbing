@@ -21,7 +21,10 @@ import {
   ShieldCheck,
   Lock,
   ArrowLeft,
-  X
+  X,
+  KeyRound,
+  LogOut,
+  AlertTriangle
 } from 'lucide-react';
 import { PilotLeadRecord, PilotLeadStatus } from '@/lib/services/pilot-lead-service';
 
@@ -54,56 +57,96 @@ export default function PilotAdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedLead, setSelectedLead] = useState<PilotLeadRecord | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [passcode, setPasscode] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [adminKey, setAdminKey] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [authMethod, setAuthMethod] = useState<'session' | 'key' | null>(null);
 
-  // Check stored auth session
+  // Check stored credentials or existing session on mount
   useEffect(() => {
-    const saved = localStorage.getItem('aquaflow_admin_unlocked');
-    if (saved === 'true') {
-      setIsUnlocked(true);
+    const storedKey = sessionStorage.getItem('aquaflow_pilot_key');
+    if (storedKey) {
+      setAdminKey(storedKey);
+      fetchLeadsWithKey(storedKey);
+    } else {
+      // Try fetching using existing SaaS session cookie
+      fetchLeadsWithSession();
     }
   }, []);
 
-  const handleUnlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passcode === 'aquaflow2026' || passcode === 'pilot199' || passcode.length > 3) {
-      setIsUnlocked(true);
-      localStorage.setItem('aquaflow_admin_unlocked', 'true');
-      setAuthError('');
-    } else {
-      setAuthError('Invalid passcode. (Hint: default is aquaflow2026)');
-    }
-  };
-
-  const fetchLeads = async () => {
+  const fetchLeadsWithSession = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/pilot/leads');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.leads)) {
-        setLeads(data.leads);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.leads)) {
+          setLeads(data.leads);
+          setIsAuthorized(true);
+          setAuthMethod('session');
+          setAuthError('');
+          return;
+        }
       }
-    } catch (err) {
-      console.error('Failed to load leads:', err);
+      // If session not found/unauthorized, stay in lock state
+      setIsAuthorized(false);
+    } catch {
+      setIsAuthorized(false);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isUnlocked) {
-      fetchLeads();
+  const fetchLeadsWithKey = async (key: string) => {
+    setLoading(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/pilot/leads', {
+        headers: { 'x-pilot-admin-key': key },
+      });
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.leads)) {
+        setLeads(data.leads);
+        setIsAuthorized(true);
+        setAuthMethod('key');
+        sessionStorage.setItem('aquaflow_pilot_key', key);
+      } else {
+        setIsAuthorized(false);
+        setAuthError(data.message || 'Invalid administrator key. Access denied.');
+      }
+    } catch {
+      setAuthError('Connection error verifying administrator credentials.');
+      setIsAuthorized(false);
+    } finally {
+      setLoading(false);
     }
-  }, [isUnlocked]);
+  };
+
+  const handleKeyLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminKey.trim()) {
+      setAuthError('Please enter the server admin key.');
+      return;
+    }
+    fetchLeadsWithKey(adminKey.trim());
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('aquaflow_pilot_key');
+    setAdminKey('');
+    setIsAuthorized(false);
+    setAuthMethod(null);
+  };
 
   const handleStatusChange = async (id: string, newStatus: PilotLeadStatus) => {
     setUpdatingId(id);
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['x-pilot-admin-key'] = adminKey;
+
       const res = await fetch(`/api/pilot/leads/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
@@ -162,7 +205,6 @@ export default function PilotAdminDashboard() {
     a.click();
   };
 
-  // Filtered list
   const filteredLeads = leads.filter((l) => {
     const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
     const q = searchTerm.toLowerCase();
@@ -178,35 +220,71 @@ export default function PilotAdminDashboard() {
   const countNew = leads.filter((l) => l.status === 'NEW').length;
   const countApproved = leads.filter((l) => l.status === 'APPROVED' || l.status === 'ONBOARDED').length;
 
-  if (!isUnlocked) {
+  if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-[#05080B] flex items-center justify-center p-4">
-        <div className="max-w-md w-full glass rounded-3xl p-8 border border-cyan-500/30 shadow-2xl text-center">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-7 h-7" />
+        <div className="max-w-md w-full glass rounded-3xl p-8 border border-cyan-500/30 shadow-2xl space-y-6">
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto mb-4 shadow-[0_0_25px_rgba(0,229,255,0.3)]">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white">AquaFlow Admin Access</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Cryptographically protected server-side lead management portal
+            </p>
           </div>
-          <h2 className="text-2xl font-extrabold text-white">Pilot Admin Portal</h2>
-          <p className="text-sm text-slate-400 mt-1 mb-6">Enter passcode to view & manage founding applications</p>
 
-          <form onSubmit={handleUnlock} className="space-y-4">
-            <input
-              type="password"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Enter passcode..."
-              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder:text-slate-600 text-sm focus:border-cyan-400 outline-none"
-            />
-            {authError && <p className="text-xs text-red-400">{authError}</p>}
+          {authError && (
+            <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          {/* Login Option 1: Existing SaaS Session */}
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+              Method 1: Authenticated Founder Login
+            </span>
+            <p className="text-xs text-slate-300">
+              Sign in with your verified AquaFlow owner / administrator credentials.
+            </p>
+            <Link
+              href="/login?redirect=/pilot/admin"
+              className="mt-2 w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 transition-all"
+            >
+              <span>Sign in with AquaFlow Account</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Login Option 2: Server Admin Key */}
+          <form onSubmit={handleKeyLogin} className="space-y-3 pt-2 border-t border-slate-800">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+              Method 2: Server-Side Secret Key
+            </span>
+            <div className="relative">
+              <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+              <input
+                type="password"
+                value={adminKey}
+                onChange={(e) => setAdminKey(e.target.value)}
+                placeholder="Enter PILOT_ADMIN_SECRET..."
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder:text-slate-600 text-xs focus:border-cyan-400 outline-none font-mono"
+              />
+            </div>
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 font-bold text-sm shadow-lg hover:scale-[1.02] transition-all"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50"
             >
-              Access Dashboard
+              {loading ? 'Authenticating with Server...' : 'Verify Admin Secret'}
             </button>
           </form>
-          <div className="mt-6">
-            <Link href="/pilot" className="text-xs text-slate-500 hover:text-cyan-400 flex items-center justify-center gap-1">
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Pilot Landing Page
+
+          <div className="pt-2 text-center">
+            <Link href="/pilot" className="text-xs text-slate-500 hover:text-cyan-400 inline-flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" /> Return to Public Pilot Landing Page
             </Link>
           </div>
         </div>
@@ -225,8 +303,9 @@ export default function PilotAdminDashboard() {
                 <ArrowLeft className="w-3.5 h-3.5" /> AquaFlow /pilot
               </Link>
               <span className="text-slate-600">•</span>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/40">
-                Founder Portal
+              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/40 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                Verified Admin ({authMethod === 'session' ? 'RBAC Session' : 'API Secret'})
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
@@ -236,7 +315,7 @@ export default function PilotAdminDashboard() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={fetchLeads}
+              onClick={() => (adminKey ? fetchLeadsWithKey(adminKey) : fetchLeadsWithSession())}
               disabled={loading}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold hover:border-cyan-500/50 transition-all disabled:opacity-50"
             >
@@ -251,6 +330,14 @@ export default function PilotAdminDashboard() {
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
             </button>
+
+            <button
+              onClick={handleLogout}
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-all"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
@@ -259,7 +346,7 @@ export default function PilotAdminDashboard() {
           <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
             <span className="text-xs font-medium text-slate-400">Total Applications</span>
             <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">{leads.length}</div>
-            <span className="text-[11px] text-cyan-400">Durable cloud database</span>
+            <span className="text-[11px] text-cyan-400">Neon cloud database</span>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
@@ -277,7 +364,7 @@ export default function PilotAdminDashboard() {
           <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
             <span className="text-xs font-medium text-slate-400">Cohort Pricing</span>
             <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">$199 <span className="text-xs font-normal text-slate-400">/mo</span></div>
-            <span className="text-[11px] text-emerald-400">High-touch onboarding</span>
+            <span className="text-[11px] text-emerald-400">High-touch founder support</span>
           </div>
         </div>
 
