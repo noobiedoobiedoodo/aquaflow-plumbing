@@ -41,7 +41,7 @@ You can review the founding partner pilot cohort here:
 ${pilotUrl}
 
 Best regards,
-Travis Vance
+Stephan Sabeski
 Founding Team | AquaFlow Plumbing Operating System
 ${baseUrl}
 
@@ -79,7 +79,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     <p style="font-size: 13px; color: #64748b;">Zero contracts. Zero per-technician seat fees. Fully set up in under 5 minutes.</p>
 
     <div class="footer">
-      <strong>Travis Vance</strong> • Founding Team<br>
+      <strong>Stephan Sabeski</strong> • Founding Team<br>
       AquaFlow Plumbing Operating System • <a href="${baseUrl}" style="color: #0284c7;">${domainDisplay}</a><br><br>
       AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br>
       <em>To opt out of future notifications, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
