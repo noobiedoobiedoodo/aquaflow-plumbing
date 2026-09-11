@@ -27,7 +27,7 @@ export function PilotNavbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/pilot" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group">
           <BrandLogo size="md" />
           <span className="hidden sm:inline-flex px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full items-center gap-1">
             <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
@@ -56,6 +56,12 @@ export function PilotNavbar() {
 
         {/* Action Button */}
         <div className="hidden sm:flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2"
+          >
+            Sign In
+          </Link>
           <a
             href="#apply"
             className="relative group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-sm font-semibold shadow-[0_0_20px_rgba(0,136,255,0.4)] hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] hover:scale-[1.02] transition-all"
@@ -114,6 +120,13 @@ export function PilotNavbar() {
             >
               FAQ
             </a>
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-1.5 text-slate-300 hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
           </nav>
           <div className="pt-2">
             <a

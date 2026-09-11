@@ -4,11 +4,11 @@ import { Testimonials } from '@/components/home/Testimonials';
 import { ServiceAreas } from '@/components/home/ServiceAreas';
 
 export const metadata = {
-  title: 'FlowLoop OS | Next-Generation Plumbing Solutions',
-  description: 'Premium plumbing solutions for residential and commercial properties. Advanced technology meets expert craftsmanship.',
+  title: 'Services & Operations | FlowLoop OS',
+  description: 'Comprehensive plumbing solutions and field dispatch capabilities powered by FlowLoop OS.',
 };
 
-export default function HomePage() {
+export default function ServicesPage() {
   return (
     <>
       <Hero />
