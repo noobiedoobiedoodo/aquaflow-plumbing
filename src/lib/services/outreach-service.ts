@@ -167,7 +167,7 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
   try {
     const { Resend } = await import('resend');
     const resend = new Resend(apiKey);
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Growth <onboarding@resend.dev>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'FlowLoop OS Growth <onboarding@flowloopos.com>';
 
     const emailContent = generateColdEmailContent({
       to: prospect.email,
