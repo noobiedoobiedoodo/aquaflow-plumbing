@@ -41,7 +41,7 @@ export default async function PortalLayout({
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden bg-white border-b border-neutral-200 p-4 flex items-center justify-between">
-        <span className="font-bold text-blue-600 text-lg tracking-tight">FlowLoop OS Portal</span>
+        <span className="font-bold text-neutral-900 text-lg tracking-tight">FlowLoop <span className="text-cyan-600">OS</span> Portal</span>
         <form action="/api/auth/logout" method="POST">
           <button type="submit" className="p-2 text-neutral-500 hover:text-neutral-900 rounded-md">
             <LogOut className="h-5 w-5" />
@@ -52,7 +52,7 @@ export default async function PortalLayout({
       {/* Sidebar */}
       <div className="hidden md:flex w-64 bg-white border-r border-neutral-200 flex-col">
         <div className="p-6 border-b border-neutral-200">
-          <div className="font-bold text-blue-600 text-xl tracking-tight">FlowLoop OS</div>
+          <div className="font-bold text-neutral-900 text-xl tracking-tight">FlowLoop <span className="text-cyan-600">OS</span></div>
           <div className="text-sm text-neutral-500 mt-1">Customer Portal</div>
         </div>
         

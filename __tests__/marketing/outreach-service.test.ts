@@ -19,7 +19,7 @@ describe('Automated Cold Outreach Service Suite', () => {
     expect(email.text).toContain('4–10 Technicians');
     expect(email.text).toContain('technician dispatch phone tag');
     expect(email.text).toContain('$199/month lifetime cohort');
-    expect(email.text).toContain('https://aquaflow-plumbing-theta.vercel.app/pilot');
+    expect(email.text).toContain('/pilot?utm_source=cold_outbound');
     expect(email.html).toContain('Lone Star Flow Plumbing');
     expect(email.html).toContain('Claim Founding Pilot Spot');
   });
