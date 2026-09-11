@@ -167,7 +167,7 @@ const RULE_EXECUTORS: Record<string, (event: any, rule: any) => Promise<void>> =
         channel: 'SMS', // Defaulting to SMS for urgent reminders
         status: 'PENDING',
         subject: `Upcoming Appointment Reminder`,
-        content: `Hi ${dbAppt.customer.firstName}, reminder that your AquaFlow technician will arrive for your appointment at ${new Date(dbAppt.startTime).toLocaleTimeString()}.`,
+        content: `Hi ${dbAppt.customer.firstName}, reminder that your FlowLoop OS technician will arrive for your appointment at ${new Date(dbAppt.startTime).toLocaleTimeString()}.`,
         metadata: JSON.stringify({ customerId: dbAppt.customerId, appointmentId: dbAppt.id })
       }
     });
@@ -270,7 +270,9 @@ export class AutomationRulesEngine {
 
     if (rules.length === 0) return;
 
-    console.log(`[AutomationEngine] Evaluated ${rules.length} rule(s) for event ${event.type}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[AutomationEngine] Evaluated ${rules.length} rule(s) for event ${event.type}`);
+    }
 
     // 2. Execute each rule idempotently
     for (const rule of rules) {
@@ -293,7 +295,9 @@ export class AutomationRulesEngine {
         }
       });
 
-      console.log(`[AutomationEngine] Executing Rule: ${rule.name} (Execution ${execution.id})`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[AutomationEngine] Executing Rule: ${rule.name} (Execution ${execution.id})`);
+      }
 
       const executor = RULE_EXECUTORS[rule.name];
       if (!executor) {

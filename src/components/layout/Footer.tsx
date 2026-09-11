@@ -7,7 +7,7 @@ export function Footer() {
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2">
             <span className="font-sans font-bold text-xl tracking-tight text-white">
-              Aqua<span className="text-water-cyan">Flow</span>
+              FlowLoop <span className="text-cyan-400">OS</span>
             </span>
           </Link>
           <p className="text-muted-text text-sm leading-relaxed max-w-xs">
@@ -39,16 +39,16 @@ export function Footer() {
           <h3 className="font-semibold text-white mb-4">Contact</h3>
           <ul className="space-y-3">
             <li className="text-muted-text text-sm">123 Main Street<br/>Winnipeg, MB R3C 1A1</li>
-            <li className="text-muted-text text-sm">Emergency: (204) 555-0911</li>
-            <li className="text-muted-text text-sm">Office: (204) 555-0199</li>
-            <li className="text-muted-text text-sm">info@aquaflowplumbing.com</li>
+            <li className="text-muted-text text-sm">Emergency: (204) 558-6438</li>
+            <li className="text-muted-text text-sm">Office: (204) 558-6438</li>
+            <li className="text-muted-text text-sm">info@flowloopos.com</li>
           </ul>
         </div>
       </div>
       
       <div className="container mx-auto px-4 pt-8 border-t border-border/50 text-center">
         <p className="text-muted-text text-sm">
-          &copy; {new Date().getFullYear()} AquaFlow Plumbing. All rights reserved.
+          &copy; {new Date().getFullYear()} FlowLoop OS. All rights reserved.
         </p>
       </div>
     </footer>

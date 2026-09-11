@@ -279,7 +279,7 @@ export default async function PublicPlumberLandingPage({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <p className="text-slate-400 font-medium">{org.name} © {new Date().getFullYear()}</p>
-            <p className="mt-1">Powered by AquaFlow Platform</p>
+            <p className="mt-1">Powered by FlowLoop OS</p>
           </div>
           <div className="flex items-center gap-6">
             <Link href={`/p/${slug}/book`} className="hover:text-cyan-400 transition">Request Service</Link>

@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Unauthorized: Access restricted to verified AquaFlow administrators.',
+          message: 'Unauthorized: Access restricted to verified FlowLoop OS administrators.',
         },
         { status: 401 }
       );

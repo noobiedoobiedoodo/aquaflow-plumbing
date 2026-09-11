@@ -129,7 +129,7 @@ export function PilotPricingOffer() {
 
                 <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30">
                   <div className="flex items-center justify-between text-xs font-bold text-cyan-300 mb-1">
-                    <span>AquaFlow Monthly Pilot</span>
+                    <span>FlowLoop OS Monthly Pilot</span>
                     <span>$199.00 / mo</span>
                   </div>
                   <p className="text-xs text-slate-300">Instant booking, 30-sec dispatch, and automated customer follow-ups.</p>
@@ -139,7 +139,7 @@ export function PilotPricingOffer() {
 
             <div className="mt-8 p-5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300">
               <strong className="text-white block mb-1">Illustrative ROI Scenario:</strong>
-              You don&apos;t need to recover dozens of jobs for AquaFlow to pay for itself. Recovering just <span className="text-cyan-400 font-semibold">one typical service call</span> covers the entire monthly software investment.
+              You don&apos;t need to recover dozens of jobs for FlowLoop OS to pay for itself. Recovering just <span className="text-cyan-400 font-semibold">one typical service call</span> covers the entire monthly software investment.
             </div>
           </motion.div>
         </div>

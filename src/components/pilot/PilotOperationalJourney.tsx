@@ -74,7 +74,7 @@ const JOURNEY_STAGES = [
     title: 'Invoice Generated & Payment Collected',
     icon: CreditCard,
     tagline: 'Get paid immediately without chasing accounts',
-    description: 'AquaFlow calculates labor, materials, and taxes automatically. Customer pays via tap/card or customer portal. Funds route directly to your bank via Stripe.',
+    description: 'FlowLoop OS calculates labor, materials, and taxes automatically. Customer pays via tap/card or customer portal. Funds route directly to your bank via Stripe.',
     detail: 'Automated tax math • Instant Stripe settlement • Zero unpaid invoices',
     mockVisual: {
       type: 'payment',
@@ -107,7 +107,7 @@ export function PilotOperationalJourney() {
             From the first customer call to the final payment.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300">
-            AquaFlow keeps the entire job moving through a single, seamless lifecycle. No lost paper slips, no duplicate data entry, and no forgotten invoices.
+            FlowLoop OS keeps the entire job moving through a single, seamless lifecycle. No lost paper slips, no duplicate data entry, and no forgotten invoices.
           </p>
         </div>
 
@@ -216,7 +216,7 @@ export function PilotOperationalJourney() {
                   </div>
 
                   <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>AquaFlow Cloud Sync</span>
+                    <span>FlowLoop OS Cloud Sync</span>
                     <span className="text-cyan-400">100% Real-Time</span>
                   </div>
                 </motion.div>

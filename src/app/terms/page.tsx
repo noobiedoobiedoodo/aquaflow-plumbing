@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { FileText, ShieldCheck, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export const metadata = {
-  title: 'Terms of Service | AquaFlow Plumbing Operating System',
-  description: 'Commercial Terms of Service and Master Subscription Agreement for AquaFlow Plumbing Operating System.',
+  title: 'Terms of Service | FlowLoop OS',
+  description: 'Commercial Terms of Service and Master Subscription Agreement for FlowLoop OS.',
 };
 
 export default function TermsOfServicePage() {
@@ -15,7 +15,7 @@ export default function TermsOfServicePage() {
         <div className="flex items-center justify-between pb-6 border-b border-slate-800">
           <Link href="/" className="inline-flex items-center gap-2 text-cyan-400 text-xs font-bold hover:underline">
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to AquaFlow</span>
+            <span>Return to FlowLoop OS</span>
           </Link>
           <span className="text-xs text-slate-500 font-mono">Last Updated: August 2026</span>
         </div>
@@ -26,10 +26,10 @@ export default function TermsOfServicePage() {
             <ShieldCheck className="w-3.5 h-3.5" /> Commercial SaaS Agreement
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            AquaFlow Terms of Service
+            FlowLoop OS Terms of Service
           </h1>
           <p className="text-sm text-slate-400 leading-relaxed">
-            These Terms of Service govern the use of the AquaFlow software platform, mobile dispatch tools, scheduling engine, and invoicing infrastructure for plumbing contractors and commercial clients.
+            These Terms of Service govern the use of the FlowLoop OS software platform, mobile dispatch tools, scheduling engine, and invoicing infrastructure for plumbing contractors and commercial clients.
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export default function TermsOfServicePage() {
               Subscription & Founding Pilot Terms
             </h2>
             <p>
-              AquaFlow is provided on a monthly subscription basis. Organizations enrolled under the <strong>Founding Partner Pilot Cohort</strong> lock in a lifetime rate of \$199/month USD/CAD with unlimited dispatch and zero per-technician seat licenses, provided their subscription remains active and in good standing.
+              FlowLoop OS is provided on a monthly subscription basis. Organizations enrolled under the <strong>Founding Partner Pilot Cohort</strong> lock in a lifetime rate of \$199/month USD/CAD with unlimited dispatch and zero per-technician seat licenses, provided their subscription remains active and in good standing.
             </p>
           </section>
 
@@ -52,7 +52,7 @@ export default function TermsOfServicePage() {
               Customer Data Ownership & Deletion Rights
             </h2>
             <p>
-              <strong>You own 100% of your data.</strong> All customer lists, work orders, service histories, pricing matrices, and technician logs uploaded to AquaFlow remain the exclusive intellectual property of the contractor. You maintain the permanent right to export your complete database or request full data deletion at any time.
+              <strong>You own 100% of your data.</strong> All customer lists, work orders, service histories, pricing matrices, and technician logs uploaded to FlowLoop OS remain the exclusive intellectual property of the contractor. You maintain the permanent right to export your complete database or request full data deletion at any time.
             </p>
           </section>
 
@@ -62,7 +62,7 @@ export default function TermsOfServicePage() {
               Payment Processing & Stripe Connect
             </h2>
             <p>
-              Payment processing services for contractors on AquaFlow are provided by Stripe and are subject to the Stripe Connected Account Agreement. By accepting these terms, you agree to comply with Stripe’s service terms. AquaFlow does not take custody of customer invoice funds.
+              Payment processing services for contractors on FlowLoop OS are provided by Stripe and are subject to the Stripe Connected Account Agreement. By accepting these terms, you agree to comply with Stripe’s service terms. FlowLoop OS does not take custody of customer invoice funds.
             </p>
           </section>
 
@@ -82,8 +82,8 @@ export default function TermsOfServicePage() {
               For legal or contractual inquiries, please contact:
             </p>
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1 font-mono">
-              <div className="text-white font-bold">AquaFlow Legal & Compliance</div>
-              <div className="text-slate-400">Email: <a href="mailto:support@aquaflowplumbing.com" className="text-cyan-400">support@aquaflowplumbing.com</a></div>
+              <div className="text-white font-bold">FlowLoop OS Legal & Compliance</div>
+              <div className="text-slate-400">Email: <a href="mailto:support@flowloopos.com" className="text-cyan-400">support@flowloopos.com</a></div>
             </div>
           </section>
 

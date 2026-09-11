@@ -2,7 +2,7 @@ import { requireAuth } from '@/lib/auth/session';
 import { UserCircle, LogOut } from 'lucide-react';
 
 export const metadata = {
-  title: 'Profile | AquaFlow Tech',
+  title: 'Profile | FlowLoop OS Tech',
 };
 
 export default async function TechProfilePage() {

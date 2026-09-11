@@ -75,7 +75,7 @@ async function generatePilotPaymentLink(
             price_data: {
               currency: currency.toLowerCase(),
               product_data: {
-                name: 'AquaFlow Founding Partner Pilot Cohort',
+                name: 'FlowLoop OS Founding Partner Pilot Cohort',
                 description: `Lifetime $199/mo rate for ${companyName} with unlimited dispatch, scheduling & automated invoicing.`,
                 tax_code: 'txcd_10103000',
               },
@@ -197,12 +197,12 @@ export async function POST(
         try {
           const { Resend } = await import('resend');
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Onboarding <onboarding@resend.dev>';
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Onboarding <onboarding@flowloopos.com>';
           const emailRes = await resend.emails.send({
             from: fromEmail,
             to: lead.email,
-            subject: `🎉 AquaFlow Founding Pilot Account & Activation (${lead.companyName})`,
-            text: `Hi ${existingUser.firstName || 'there'},\n\nYour AquaFlow dedicated operating system has been provisioned for ${lead.companyName}!\n\n1️⃣ 3-MINUTE ACCOUNT ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ Note: This activation link expires in 3 minutes for security.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nBest regards,\nThe AquaFlow Founding Team`,
+            subject: `🎉 FlowLoop OS Founding Pilot Account & Activation (${lead.companyName})`,
+            text: `Hi ${existingUser.firstName || 'there'},\n\nYour FlowLoop OS dedicated operating system has been provisioned for ${lead.companyName}!\n\n1️⃣ 3-MINUTE ACCOUNT ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ Note: This activation link expires in 3 minutes for security.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nBest regards,\nThe FlowLoop OS Founding Team`,
           });
           if (!emailRes.error) emailSent = true;
           else emailError = emailRes.error.message;
@@ -243,7 +243,7 @@ export async function POST(
     const lastName = nameParts.slice(1).join(' ') || 'Operator';
 
     // Generate secure temporary password
-    const tempPassword = `AquaFlow-${randomBytes(4).toString('hex').toUpperCase()}!`;
+    const tempPassword = `FlowLoop-${randomBytes(4).toString('hex').toUpperCase()}!`;
     const passwordHash = await hashPassword(tempPassword);
 
     // Create unique slug
@@ -462,13 +462,13 @@ export async function POST(
       try {
         const { Resend } = await import('resend');
         const resend = new Resend(process.env.RESEND_API_KEY);
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Onboarding <onboarding@resend.dev>';
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Onboarding <onboarding@flowloopos.com>';
 
         const emailRes = await resend.emails.send({
           from: fromEmail,
           to: lead.email,
-          subject: `🎉 Welcome to AquaFlow Founding Pilot — Activate & Lock In $199/mo (${lead.companyName})`,
-          text: `Hi ${firstName},\n\nWelcome to the AquaFlow Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n1️⃣ 3-MINUTE ONE-TIME ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nWHAT IS READY IN YOUR WORKSPACE:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance or a 10-minute setup walkthrough, reply directly to this email.\n\nBest regards,\nThe AquaFlow Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
+          subject: `🎉 Welcome to FlowLoop OS Founding Pilot — Activate & Lock In $199/mo (${lead.companyName})`,
+          text: `Hi ${firstName},\n\nWelcome to the FlowLoop OS Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n1️⃣ 3-MINUTE ONE-TIME ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nWHAT IS READY IN YOUR WORKSPACE:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance or a 10-minute setup walkthrough, reply directly to this email.\n\nBest regards,\nThe FlowLoop OS Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
         });
 
         if (emailRes.error) {

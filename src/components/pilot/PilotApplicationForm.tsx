@@ -71,6 +71,7 @@ export function PilotApplicationForm() {
   const trackConversionEvent = (eventName: string, metadata?: Record<string, any>) => {
     try {
       if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('flowloop_pilot_event', { detail: { eventName, ...metadata } }));
         window.dispatchEvent(new CustomEvent('aquaflow_pilot_event', { detail: { eventName, ...metadata } }));
         // Safe logging for dev/marketing inspection
         if (process.env.NODE_ENV !== 'production') {
@@ -227,7 +228,7 @@ export function PilotApplicationForm() {
                   href="#how-it-works"
                   className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300"
                 >
-                  <span>Review How AquaFlow Works in the Meantime</span>
+                  <span>Review How FlowLoop OS Works in the Meantime</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>

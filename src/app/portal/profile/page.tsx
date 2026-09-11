@@ -221,7 +221,7 @@ export default async function CustomerProfilePage() {
               <Shield className="w-4 h-4 text-blue-600" /> Plumber Tenant Isolation
             </div>
             <p className="text-blue-800/90 leading-relaxed">
-              Your profile is registered with <strong>{customer.organization.name}</strong>. If you use other services powered by AquaFlow, your records and job history remain completely separated.
+              Your profile is registered with <strong>{customer.organization.name}</strong>. If you use other services powered by FlowLoop OS, your records and job history remain completely separated.
             </p>
           </div>
         </div>

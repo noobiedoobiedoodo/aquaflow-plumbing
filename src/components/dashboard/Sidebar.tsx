@@ -24,12 +24,15 @@ export function Sidebar() {
     <aside className="w-64 border-r border-border/50 glass shrink-0 flex flex-col h-full">
       <div className="p-6 border-b border-border/50">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative w-8 h-8 flex items-center justify-center">
+          {/* Logo container: structured for easy drop-in of custom logo asset */}
+          <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
             <div className="absolute inset-0 bg-primary-blue rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500 opacity-20"></div>
             <div className="absolute inset-1 bg-gradient-to-tr from-primary-blue to-water-cyan rounded-md rotate-12"></div>
             <div className="absolute w-2 h-2 bg-background rounded-full"></div>
           </div>
-          <span className="font-bold text-xl text-white tracking-tight">AquaFlow</span>
+          <span className="font-bold text-xl text-white tracking-tight">
+            FlowLoop <span className="text-cyan-400">OS</span>
+          </span>
         </Link>
       </div>
 

@@ -38,7 +38,7 @@ export default function PortalLogin() {
     <div className="w-full max-w-md mx-auto mt-20">
       <div className="bg-white border border-neutral-200 rounded-2xl p-8 shadow-xl shadow-neutral-200/50">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600 tracking-tight">AquaFlow</h1>
+          <h1 className="text-2xl font-bold text-blue-600 tracking-tight">FlowLoop OS</h1>
           <h2 className="text-xl font-semibold text-neutral-900 mt-4">Customer Portal</h2>
           <p className="text-sm text-neutral-500 mt-2">Sign in to view your jobs, estimates, and invoices.</p>
         </div>

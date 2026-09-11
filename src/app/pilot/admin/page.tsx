@@ -137,7 +137,7 @@ export default function PilotAdminDashboard() {
 
   // Check stored credentials or existing session on mount
   useEffect(() => {
-    const storedKey = sessionStorage.getItem('aquaflow_pilot_key');
+    const storedKey = sessionStorage.getItem('flowloop_pilot_key') || sessionStorage.getItem('aquaflow_pilot_key');
     if (storedKey) {
       setAdminKey(storedKey);
       fetchDataWithKey(storedKey);
@@ -194,7 +194,7 @@ export default function PilotAdminDashboard() {
         setLeads(data.leads);
         setIsAuthorized(true);
         setAuthMethod('key');
-        sessionStorage.setItem('aquaflow_pilot_key', key);
+        sessionStorage.setItem('flowloop_pilot_key', key);
       } else {
         setIsAuthorized(false);
         setAuthError(data.message || 'Invalid administrator key. Access denied.');
@@ -224,6 +224,7 @@ export default function PilotAdminDashboard() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem('flowloop_pilot_key');
     sessionStorage.removeItem('aquaflow_pilot_key');
     setAdminKey('');
     setIsAuthorized(false);
@@ -545,7 +546,7 @@ export default function PilotAdminDashboard() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `aquaflow-inbound-leads-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `flowloop-os-inbound-leads-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -570,7 +571,7 @@ export default function PilotAdminDashboard() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `aquaflow-cold-prospects-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `flowloop-os-cold-prospects-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -585,7 +586,7 @@ export default function PilotAdminDashboard() {
             <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto mb-4 shadow-[0_0_25px_rgba(0,229,255,0.3)]">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <h2 className="text-2xl font-extrabold text-white">AquaFlow Admin Access</h2>
+            <h2 className="text-2xl font-extrabold text-white">FlowLoop OS Admin Access</h2>
             <p className="text-xs text-slate-400 mt-1">
               Cryptographically protected server-side lead management portal
             </p>
@@ -604,13 +605,13 @@ export default function PilotAdminDashboard() {
               Method 1: Authenticated Founder Login
             </span>
             <p className="text-xs text-slate-300">
-              Sign in with your verified AquaFlow owner / administrator credentials.
+              Sign in with your verified FlowLoop OS owner / administrator credentials.
             </p>
             <Link
               href="/login?redirect=/pilot/admin"
               className="mt-2 w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 transition-all"
             >
-              <span>Sign in with AquaFlow Account</span>
+              <span>Sign in with FlowLoop OS Account</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -663,7 +664,7 @@ export default function PilotAdminDashboard() {
               <span className="text-xs text-slate-500">v2.4 Production</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              AquaFlow Growth & Onboarding Portal
+              FlowLoop <span className="text-cyan-400">OS</span> Growth & Onboarding Portal
             </h1>
           </div>
 
@@ -1159,7 +1160,7 @@ export default function PilotAdminDashboard() {
 
                               <button
                                 onClick={() => {
-                                  const text = `Hi ${p.contactName},\n\nI noticed ${p.companyName} is running a strong plumbing team in ${p.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${p.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
+                                  const text = `Hi ${p.contactName},\n\nI noticed ${p.companyName} is running a strong plumbing team in ${p.city}.\n\nWe built FlowLoop OS specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${p.state.toLowerCase()}_pilot\n\nBest,\nFlowLoop OS Founding Team`;
                                   navigator.clipboard.writeText(text);
                                   handleUpdateProspect(p.id, { outreachStatus: 'EMAIL_SENT' });
                                   alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
@@ -1331,7 +1332,7 @@ export default function PilotAdminDashboard() {
               <div className="flex items-center justify-between gap-3 pt-2">
                 <button
                   onClick={() => {
-                    const text = `AquaFlow Founding Pilot Onboarding:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n\n1️⃣ 3-Minute Account Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n(Note: Activation link expires in 3 minutes for security)\n\n2️⃣ 1-Click $199/mo Founding Pilot Subscription:\n${provisionResult.paymentLink || 'https://aquaflow-plumbing-theta.vercel.app/pricing'}\n\nDashboard Login: https://aquaflow-plumbing-theta.vercel.app/login`;
+                    const text = `FlowLoop OS Founding Pilot Onboarding:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n\n1️⃣ 3-Minute Account Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n(Note: Activation link expires in 3 minutes for security)\n\n2️⃣ 1-Click $199/mo Founding Pilot Subscription:\n${provisionResult.paymentLink || 'https://aquaflow-plumbing-theta.vercel.app/pricing'}\n\nDashboard Login: https://aquaflow-plumbing-theta.vercel.app/login`;
                     navigator.clipboard.writeText(text);
                     setCopiedKey(true);
                     setTimeout(() => setCopiedKey(false), 2500);
@@ -1434,7 +1435,7 @@ export default function PilotAdminDashboard() {
 
                 <div className="flex items-center gap-2">
                   <a
-                    href={`mailto:${selectedLead.email}?subject=AquaFlow Founding Pilot Onboarding Setup (${selectedLead.companyName})`}
+                    href={`mailto:${selectedLead.email}?subject=FlowLoop OS Founding Pilot Onboarding Setup (${selectedLead.companyName})`}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700"
                   >
                     <Mail className="w-3.5 h-3.5" />
@@ -1556,7 +1557,7 @@ export default function PilotAdminDashboard() {
                   <div className="rounded-2xl bg-white text-slate-900 overflow-hidden border border-slate-200 shadow-md">
                     <div className="bg-slate-950 p-4 border-b border-sky-500/40 text-white">
                       <div className="text-sm font-extrabold flex items-center gap-1.5 text-white">
-                        <span>💧 AquaFlow<span className="text-sky-400">OS</span></span>
+                        <span>FlowLoop <span className="text-cyan-400">OS</span></span>
                       </div>
                       <div className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-sky-950 border border-sky-500/40 text-[10px] font-bold text-sky-300 uppercase tracking-wider">
                         🚀 Founding Partner Cohort • {selectedProspect.city}, {selectedProspect.state}
@@ -1571,7 +1572,7 @@ export default function PilotAdminDashboard() {
                         I noticed <strong>{selectedProspect.companyName}</strong> is running a high-demand plumbing operation in <strong>{selectedProspect.city}</strong>.
                       </p>
                       <p className="text-slate-700 leading-relaxed">
-                        We built AquaFlow specifically for independent trade businesses managing <strong>{selectedProspect.technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>{selectedProspect.painPoints[0]?.toLowerCase() || 'dispatch phone tag'}</strong>.
+                        We built FlowLoop OS specifically for independent trade businesses managing <strong>{selectedProspect.technicianCount}</strong> who are tired of paying $1,200/month for clunky enterprise software or dealing with <strong>{selectedProspect.painPoints[0]?.toLowerCase() || 'dispatch phone tag'}</strong>.
                       </p>
 
                       {/* 3 VALUE PILLARS */}
@@ -1594,7 +1595,7 @@ export default function PilotAdminDashboard() {
                           <span className="text-red-400 font-semibold">$1,200+/mo • 12-Mo Lock-in</span>
                         </div>
                         <div className="flex justify-between font-bold text-sky-300 pt-1 border-t border-slate-800">
-                          <span>AquaFlow Founding Pilot:</span>
+                          <span>FlowLoop OS Founding Pilot:</span>
                           <span className="text-emerald-400">$199/mo Flat (No Contracts)</span>
                         </div>
                       </div>
@@ -1610,7 +1611,7 @@ export default function PilotAdminDashboard() {
                       </div>
 
                       <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-200">
-                        <strong>Sign-off:</strong> Stephan Sabeski • Founding Team • <a href={`https://aquaflow-plumbing-theta.vercel.app/pilot`} target="_blank" className="text-sky-600 font-mono">aquaflow-plumbing-theta.vercel.app/pilot</a>
+                        <strong>Sign-off:</strong> Stephan Sabeski • Founding Team • <a href={`https://flowloopos.com/pilot`} target="_blank" className="text-sky-600 font-mono">flowloopos.com/pilot</a>
                       </div>
                     </div>
                   </div>
@@ -1652,7 +1653,7 @@ export default function PilotAdminDashboard() {
 
                   <button
                     onClick={() => {
-                      const text = `Hi ${selectedProspect.contactName},\n\nI noticed ${selectedProspect.companyName} is running a strong plumbing team in ${selectedProspect.city}.\n\nWe built AquaFlow specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot\n\nBest,\nAquaFlow Founding Team`;
+                      const text = `Hi ${selectedProspect.contactName},\n\nI noticed ${selectedProspect.companyName} is running a strong plumbing team in ${selectedProspect.city}.\n\nWe built FlowLoop OS specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://flowloopos.com/pilot?utm_source=cold_outbound&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot\n\nBest,\nFlowLoop OS Founding Team`;
                       navigator.clipboard.writeText(text);
                       handleUpdateProspect(selectedProspect.id, { outreachStatus: 'EMAIL_SENT' });
                       alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');

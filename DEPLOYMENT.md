@@ -14,7 +14,7 @@ The pipeline is triggered automatically on merge to the `main` branch.
 
 ### 1. Build & Lint (CI)
 - `npm run lint` (ESLint)
-- `npm run type-check` (tsc)
+- `npm run typecheck` (tsc)
 - `npm run build` (Next.js production build)
 
 ### 2. Automated Testing (CI)

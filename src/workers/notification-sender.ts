@@ -6,7 +6,7 @@ import { Logger } from '../lib/observability/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'AquaFlow <onboarding@aquaflowplumbing.com>';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'FlowLoop OS <onboarding@flowloopos.com>';
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_FROM_NUMBER = process.env.TWILIO_FROM_NUMBER;
@@ -50,7 +50,7 @@ export async function processNotification(job: Job<NotificationQueueJobData>) {
         const res = await resend.emails.send({
           from: EMAIL_FROM,
           to: toEmail,
-          subject: notification.subject || 'Update from AquaFlow',
+          subject: notification.subject || 'Update from FlowLoop OS',
           text: notification.content,
           tags: [{ name: 'notificationId', value: notification.id }],
         });

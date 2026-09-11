@@ -40,7 +40,28 @@ export default async function PaymentPage({ params }: { params: { token: string 
         <div className="max-w-xl mx-auto">
           <div className="mb-12">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">{invoice.organization.name}</h1>
-            <p className="text-neutral-500 mt-2 text-sm">Invoice #{invoice.invoiceNumber}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-neutral-500 text-sm">Invoice #{invoice.invoiceNumber}</p>
+              <span className="text-xs px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 font-mono">
+                v{invoice.currentVersion}
+              </span>
+            </div>
+
+            {invoice.status === 'SIGNED' && (
+              <div className="mt-3 flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ✓ Electronically Signed
+                </span>
+                <a
+                  href={`/api/invoices/${invoice.id}/pdf?token=${token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-blue-600 hover:text-blue-800 underline inline-flex items-center gap-1"
+                >
+                  Download Signed PDF ↗
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">

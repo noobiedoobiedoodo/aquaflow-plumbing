@@ -158,6 +158,10 @@ export class InvoiceService {
         },
       });
 
+      // FlowLoopOS Document Subsystem: Initialize Version 1 & Canonical Snapshot
+      const { InvoiceVersioningService } = await import('@/lib/services/invoice-versioning-service');
+      await InvoiceVersioningService.initializeVersionOne(tx, organizationId, invoice.id);
+
       // Outbox Event
       await tx.event.create({
         data: {

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 
 export const metadata = {
-  title: 'Book Service | AquaFlow Plumbing',
+  title: 'Book Service | FlowLoop OS',
   description: 'Request a plumbing appointment or emergency service online.',
 };
 

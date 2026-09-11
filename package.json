@@ -1,5 +1,5 @@
 {
-  "name": "plumber-pro",
+  "name": "flowloop-os",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -40,9 +40,11 @@
     "dotenv": "^17.4.2",
     "framer-motion": "^13.1.0",
     "ioredis": "^6.0.0",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.31.0",
     "mime": "^4.1.0",
     "next": "16.3.1",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.23.0",
     "prisma": "^7.9.1",
     "react": "19.2.8",
@@ -64,6 +66,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^9.6.0",
+    "@types/jszip": "^3.4.0",
     "@types/mime": "^3.0.4",
     "@types/node": "^20",
     "@types/node-fetch": "^2.6.13",

@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
         });
 
         if (existingEvent) {
-          console.log(`Stripe webhook event ${event.id} already processed. Skipping.`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`Stripe webhook event ${event.id} already processed. Skipping.`);
+          }
           return;
         }
 
@@ -62,7 +64,9 @@ export async function POST(req: NextRequest) {
           });
         } catch (eventErr: any) {
           if (eventErr.code === 'P2002' || eventErr.message?.includes('Unique constraint')) {
-            console.log(`Stripe webhook event ${event.id} already claimed concurrently. Skipping.`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`Stripe webhook event ${event.id} already claimed concurrently. Skipping.`);
+            }
             return;
           }
           throw eventErr;
@@ -73,7 +77,9 @@ export async function POST(req: NextRequest) {
         });
 
         if (existingPayment) {
-          console.log(`Payment ${paymentIntent.id} already processed under a different event. Skipping.`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`Payment ${paymentIntent.id} already processed under a different event. Skipping.`);
+          }
           return;
         }
 
@@ -155,7 +161,9 @@ export async function POST(req: NextRequest) {
     } catch (dbError: any) {
       // If it's a unique constraint violation, it's a safe race condition we can ignore
       if (dbError.code === 'P2002') {
-        console.log(`Duplicate webhook delivery prevented for ${paymentIntent.id}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`[StripeWebhook] Duplicate delivery prevented for ${paymentIntent.id}`);
+        }
         return new NextResponse('Already processed', { status: 200 });
       }
 
@@ -223,7 +231,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ==========================================
-  // SaaS Subscriptions (AquaFlow Billing)
+  // SaaS Subscriptions (FlowLoop OS Billing)
   // ==========================================
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;

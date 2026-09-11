@@ -11,7 +11,7 @@ const startTime = new Date();
 let isShuttingDown = false;
 let lastHeartbeat = new Date();
 
-Logger.info('Bootstrapping AquaFlow Continuous Worker Process...', { operation: 'worker.bootstrap' });
+Logger.info('Bootstrapping FlowLoop OS Continuous Worker Process...', { operation: 'worker.bootstrap' });
 
 // 1. Connection Checks
 async function verifyConnections() {
@@ -41,7 +41,7 @@ const outboxTimer = startOutboxDispatcher(5000);
 const eventWorker = startEventProcessor();
 const notificationWorker = startNotificationSender();
 
-Logger.info('All AquaFlow continuous workers initialized successfully.', {
+Logger.info('All FlowLoop OS continuous workers initialized successfully.', {
   operation: 'worker.ready',
   metadata: {
     queues: [QUEUES.EVENTS, QUEUES.NOTIFICATIONS],

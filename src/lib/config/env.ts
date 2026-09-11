@@ -20,7 +20,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().optional().default('AquaFlow <onboarding@aquaflowplumbing.com>'),
+  EMAIL_FROM: z.string().optional().default('FlowLoop OS <onboarding@flowloopos.com>'),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_FROM_NUMBER: z.string().optional(),
@@ -31,7 +31,7 @@ const envSchema = z.object({
   AWS_ENDPOINT: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   NEXT_PUBLIC_BASE_URL: z.string().optional(),
-  NEXT_PUBLIC_APP_NAME: z.string().optional().default('AquaFlow Plumbing'),
+  NEXT_PUBLIC_APP_NAME: z.string().optional().default('FlowLoop OS'),
 });
 
 export function validateEnvironment(envObj: Record<string, string | undefined> = process.env) {

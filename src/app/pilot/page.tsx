@@ -50,9 +50,9 @@ export default function PilotLandingPage() {
       {/* Footer */}
       <footer className="py-12 bg-[#030508] border-t border-slate-900 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 space-y-3">
-          <p>© {new Date().getFullYear()} AquaFlow Operations Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} FlowLoop OS. All rights reserved.</p>
           <p className="text-[11px] text-slate-600">
-            AquaFlow Founding Commercial Pilot • Multi-Tenant Plumbing Operations Engine
+            FlowLoop OS Founding Commercial Pilot • Multi-Tenant Plumbing Operations Engine
           </p>
         </div>
       </footer>

@@ -83,7 +83,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-secondary-bg/50 border border-border rounded-xl text-white focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition-all"
-              placeholder="admin@aquaflowplumbing.com"
+              placeholder="admin@flowloopos.com"
             />
           </div>
         </div>
@@ -115,15 +115,15 @@ function LoginForm() {
       </form>
 
       <div className="mt-6 pt-6 border-t border-border/50 text-center text-sm">
-        <span className="text-muted-text">New plumbing business? </span>
+        <span className="text-muted-text">New trade business? </span>
         <Link href="/signup" className="text-water-cyan hover:underline font-semibold">
-          Create an AquaFlow Account
+          Create a FlowLoop OS Account
         </Link>
       </div>
 
       <div className="mt-4 text-center text-xs text-muted-text">
         For development demo access, use <br/>
-        <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded mt-1 inline-block">admin@aquaflowplumbing.com</code> / <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded">admin123</code>
+        <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded mt-1 inline-block">admin@flowloopos.com</code> / <code className="text-primary-blue bg-primary-blue/10 px-1 py-0.5 rounded">admin123</code>
       </div>
     </div>
   );
@@ -140,12 +140,15 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative w-10 h-10 flex items-center justify-center">
+            {/* Logo container: structured for easy drop-in of custom logo asset */}
+            <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
               <div className="absolute inset-0 bg-primary-blue rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500 opacity-20"></div>
               <div className="absolute inset-1 bg-gradient-to-tr from-primary-blue to-water-cyan rounded-md rotate-12"></div>
               <div className="absolute w-2.5 h-2.5 bg-background rounded-full"></div>
             </div>
-            <span className="font-bold text-2xl text-white tracking-tight">AquaFlow</span>
+            <span className="font-bold text-2xl text-white tracking-tight">
+              FlowLoop <span className="text-cyan-400">OS</span>
+            </span>
           </Link>
         </div>
 

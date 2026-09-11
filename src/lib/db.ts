@@ -1,3 +1,4 @@
+import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
@@ -11,7 +12,18 @@ function createPrismaClient(): PrismaClient {
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
     'postgresql://postgres@localhost:5432/aquaflow_db?schema=public';
-  const adapter = new PrismaPg({ connectionString });
+
+  // Explicit connection pool configuration to prevent connection exhaustion
+  // in serverless environments (Vercel, etc.) and container deployments.
+  // Use the Neon "-pooler" hostname in DATABASE_URL for serverless.
+  const pool = new Pool({
+    connectionString,
+    max: process.env.NODE_ENV === 'production' ? 5 : 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],

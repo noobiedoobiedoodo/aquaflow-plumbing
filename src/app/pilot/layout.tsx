@@ -1,20 +1,20 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'AquaFlow Founding Pilot | $199/mo Plumbing Operations Platform',
+  title: 'FlowLoop OS Founding Pilot | $199/mo Plumbing Operations Platform',
   description:
-    'Stop running your plumbing business from your phone. AquaFlow gives growing plumbing companies one place to manage bookings, dispatch, technicians, customers, invoices, and payments. Apply for the 3-company founding pilot at $199/month.',
+    'Stop running your plumbing business from your phone. FlowLoop OS gives growing plumbing companies one place to manage bookings, dispatch, technicians, customers, invoices, and payments. Apply for the 3-company founding pilot at $199/month.',
   openGraph: {
-    title: 'AquaFlow Founding Pilot — $199/Month Commercial Launch',
+    title: 'FlowLoop OS Founding Pilot — $199/Month Commercial Launch',
     description:
       'Stop running your plumbing company from your phone. 3 commercial plumbing companies accepted for high-touch founder onboarding at $199/month.',
-    url: 'https://aquaflow-plumbing-theta.vercel.app/pilot',
-    siteName: 'AquaFlow Plumbing Operations Platform',
+    url: 'https://flowloopos.com/pilot',
+    siteName: 'FlowLoop OS Operations Platform',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AquaFlow Founding Pilot — $199/Month',
+    title: 'FlowLoop OS Founding Pilot — $199/Month',
     description: 'Stop running your plumbing company from your phone. Apply for the 3-company founding pilot.',
   },
 };

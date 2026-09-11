@@ -287,8 +287,8 @@ async function main() {
     where: { slug: 'aquaflow' },
     update: {
       name: 'AquaFlow Plumbing' /* PLACEHOLDER */,
-      phone: '(204) 555-0199' /* PLACEHOLDER */,
-      emergencyPhone: '(204) 555-0911' /* PLACEHOLDER */,
+      phone: '(204) 558-6438',
+      emergencyPhone: '(204) 558-6438',
       email: 'info@aquaflowplumbing.com' /* PLACEHOLDER */,
       address: '123 Main Street' /* PLACEHOLDER */,
       city: 'Winnipeg',
@@ -302,8 +302,8 @@ async function main() {
     create: {
       name: 'AquaFlow Plumbing' /* PLACEHOLDER */,
       slug: 'aquaflow',
-      phone: '(204) 555-0199' /* PLACEHOLDER */,
-      emergencyPhone: '(204) 555-0911' /* PLACEHOLDER */,
+      phone: '(204) 558-6438',
+      emergencyPhone: '(204) 558-6438',
       email: 'info@aquaflowplumbing.com' /* PLACEHOLDER */,
       address: '123 Main Street' /* PLACEHOLDER */,
       city: 'Winnipeg',

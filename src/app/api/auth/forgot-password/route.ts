@@ -72,7 +72,7 @@ export async function POST(request: Request) {
           type: 'PASSWORD_RESET',
           channel: 'EMAIL',
           status: 'PENDING',
-          subject: 'Reset Your AquaFlow Password',
+          subject: 'Reset Your FlowLoop OS Password',
           content: `Hi ${user.firstName || 'User'},\n\nClick the link below to securely reset your password:\n\n${resetUrl}\n\nThis link is active for 1 hour.`,
           metadata: JSON.stringify({ email: user.email, resetUrl, organizationId: orgId }),
         },

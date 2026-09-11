@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { MapPin, Clock, Wrench } from 'lucide-react';
 
 export const metadata = {
-  title: 'Today | AquaFlow Tech',
+  title: 'Today | FlowLoop OS Tech',
 };
 
 function formatTime(date: Date) {

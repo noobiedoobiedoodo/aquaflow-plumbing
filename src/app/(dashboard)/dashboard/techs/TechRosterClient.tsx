@@ -211,7 +211,7 @@ export function TechRosterClient({ initialTechs }: { initialTechs: any[] }) {
                   type="email"
                   name="email"
                   required
-                  placeholder="mike.j@aquaflowplumbing.com"
+                  placeholder="mike.j@flowloopos.com"
                   className="w-full px-3.5 py-2.5 bg-background border border-border rounded-xl text-sm text-white focus:ring-2 focus:ring-primary-blue"
                 />
               </div>

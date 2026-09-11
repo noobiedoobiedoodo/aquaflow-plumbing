@@ -6,7 +6,9 @@ import { randomUUID } from 'crypto';
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json().catch(() => ({}));
-    console.log('📡 Apify Webhook Received Event:', payload.eventType || 'UNKNOWN');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[ApifyWebhook] Received event:', payload.eventType || 'UNKNOWN');
+    }
 
     // Apify webhook resource provides the defaultDatasetId
     const defaultDatasetId =
@@ -128,7 +130,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log(`✅ Apify Webhook processed & imported ${imported} plumbing contractors into PostgreSQL!`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[ApifyWebhook] Imported ${imported} contractors into PostgreSQL`);
+    }
     return NextResponse.json({
       success: true,
       message: `Successfully processed Apify dataset and imported ${imported} contractors.`,

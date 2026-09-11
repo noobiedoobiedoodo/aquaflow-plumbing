@@ -178,6 +178,10 @@ export async function generateInvoiceFromJob(jobId: string, laborHourlyRate: num
       }
     });
 
+    // FlowLoopOS Document Subsystem: Initialize Version 1 & Canonical Snapshot
+    const { InvoiceVersioningService } = await import('@/lib/services/invoice-versioning-service');
+    await InvoiceVersioningService.initializeVersionOne(tx, organizationId, invoice.id);
+
     // OUTBOX: Generate Event
     await tx.event.create({
       data: {
@@ -254,16 +258,22 @@ export async function createPaymentIntentFromToken(paymentToken: string) {
 }
 
 const VALID_INVOICE_TRANSITIONS: Record<string, string[]> = {
-  'DRAFT': ['SENT', 'VOID', 'PAID', 'PARTIALLY_PAID'],
-  'SENT': ['VOID', 'PAID', 'PARTIALLY_PAID', 'OVERDUE'],
+  'DRAFT': ['SENT', 'AWAITING_SIGNATURE', 'VOID', 'PAID', 'PARTIALLY_PAID'],
+  'SENT': ['VIEWED', 'AWAITING_SIGNATURE', 'VOID', 'PAID', 'PARTIALLY_PAID', 'OVERDUE'],
+  'VIEWED': ['AWAITING_SIGNATURE', 'SIGNED', 'VOID', 'PAID', 'PARTIALLY_PAID', 'OVERDUE'],
+  'AWAITING_SIGNATURE': ['SIGNING_IN_PROGRESS', 'SIGNED', 'VOID', 'PAID', 'PARTIALLY_PAID', 'OVERDUE'],
+  'SIGNING_IN_PROGRESS': ['SIGNED', 'AWAITING_SIGNATURE'],
+  'SIGNED': ['PAID', 'PARTIALLY_PAID', 'VOID', 'SUPERSEDED', 'SIGNATURE_INVALIDATED'],
   'PARTIALLY_PAID': ['PAID'],
-  'OVERDUE': ['PAID', 'PARTIALLY_PAID', 'VOID'],
+  'OVERDUE': ['PAID', 'PARTIALLY_PAID', 'VOID', 'AWAITING_SIGNATURE'],
   'PAID': [],
-  'VOID': []
+  'VOID': [],
+  'SUPERSEDED': [],
+  'SIGNATURE_INVALIDATED': ['AWAITING_SIGNATURE', 'VOID']
 };
 
 /**
- * Updates an invoice's status.
+ * Updates an invoice's status with FlowLoopOS immutability enforcement.
  * TENANT ISOLATION: organizationId is derived from the authenticated session.
  */
 export async function updateInvoiceStatus(invoiceId: string, newStatus: string) {
@@ -275,6 +285,12 @@ export async function updateInvoiceStatus(invoiceId: string, newStatus: string) 
       where: { id: invoiceId, organizationId }
     });
     if (!invoice) throw new Error("Invoice not found");
+
+    if (invoice.isImmutable && ['DRAFT', 'SENT', 'AWAITING_SIGNATURE'].includes(newStatus)) {
+      throw new Error(
+        "This invoice is signed and immutable. Direct mutations are prohibited. Please create a revised version."
+      );
+    }
 
     const allowedNextStates = VALID_INVOICE_TRANSITIONS[invoice.status] || [];
     if (!allowedNextStates.includes(newStatus)) {
@@ -295,8 +311,43 @@ export async function updateInvoiceStatus(invoiceId: string, newStatus: string) 
       }
     });
 
+    await tx.invoiceAuditEvent.create({
+      data: {
+        organizationId,
+        invoiceId,
+        actorId: user.id,
+        actorType: 'STAFF',
+        eventType: `STATUS_CHANGED_${newStatus}`,
+        eventDetails: JSON.stringify({ previousStatus: invoice.status, newStatus })
+      }
+    });
+
     return updated;
   });
 
   return result;
 }
+
+/**
+ * Creates a revised version of an existing invoice (e.g. Version 2).
+ * Strictly preserves the previous signed version, its PDF, hashes, and signatures.
+ */
+export async function createInvoiceRevisionAction(
+  invoiceId: string,
+  reason: string,
+  lines: Array<{ description: string; quantity: number; unitCost: number }>,
+  dueDate?: Date | null
+) {
+  const { user, organizationId } = await requireRoleInOrg(ADMIN_ROLES);
+  const { InvoiceVersioningService } = await import('@/lib/services/invoice-versioning-service');
+
+  return await InvoiceVersioningService.createInvoiceRevision({
+    organizationId,
+    invoiceId,
+    actorId: user.id,
+    reason,
+    lines,
+    dueDate,
+  });
+}
+

@@ -30,7 +30,7 @@ export async function POST(req: Request) {
           price_data: {
             currency: 'cad',
             product_data: {
-              name: 'AquaFlow Core Operating System',
+              name: 'FlowLoop OS Core Operating System',
               description: 'Full access to scheduling, dispatch, billing, and intelligent operations.',
               tax_code: 'txcd_10103000',
             },

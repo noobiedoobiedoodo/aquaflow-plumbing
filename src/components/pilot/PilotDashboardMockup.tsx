@@ -78,7 +78,7 @@ export function PilotDashboardMockup() {
             One command center. Zero operational chaos.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300">
-            See how AquaFlow gives you real-time visibility into today&apos;s revenue, active technician statuses, and instant customer payments.
+            See how FlowLoop OS gives you real-time visibility into today&apos;s revenue, active technician statuses, and instant customer payments.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export function PilotDashboardMockup() {
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                 <span className="ml-4 text-xs font-mono text-slate-400 hidden sm:inline">
-                  aquaflow.app/dispatch-console
+                  flowloopos.com/dispatch-console
                 </span>
               </div>
               <div className="flex items-center gap-3">

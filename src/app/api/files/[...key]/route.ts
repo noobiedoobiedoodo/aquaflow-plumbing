@@ -68,9 +68,20 @@ export async function GET(
       },
     });
 
-    const job = signature?.job || photo?.job;
+    const invoiceSig = await prisma.invoiceSignature.findFirst({
+      where: { signedPdfKey: storageKey },
+      include: { invoice: true },
+    });
 
-    if (!job || !job.organizationId || !job.appointment) {
+    const invoiceVer = await prisma.invoiceVersion.findFirst({
+      where: { signedPdfKey: storageKey },
+      include: { invoice: true },
+    });
+
+    const job = signature?.job || photo?.job;
+    const invoice = invoiceSig?.invoice || invoiceVer?.invoice;
+
+    if (!job && !invoice) {
       return new NextResponse('File record not found or access denied', { status: 404 });
     }
 
@@ -78,22 +89,23 @@ export async function GET(
 
     // 3. Customer Authorization Check
     if (currentCustomer) {
-      // Customer must own the appointment associated with the job
-      if (job.appointment.customerId === currentCustomer.customerId) {
-        // If it's a photo, verify it is marked as customer visible
+      if (job && job.appointment && job.appointment.customerId === currentCustomer.customerId) {
         if (!photo || photo.customerVisible) {
           isAuthorized = true;
         }
+      } else if (invoice && invoice.customerId === currentCustomer.customerId) {
+        isAuthorized = true;
       }
     }
 
     // 4. Staff / Admin / Technician Authorization Check
     if (currentUser && !isAuthorized) {
       const { user } = currentUser;
+      const targetOrgId = job?.organizationId || invoice?.organizationId;
 
-      // TENANT ISOLATION: The staff user MUST have active membership in THIS job's organization
+      // TENANT ISOLATION: The staff user MUST have active membership in THIS entity's organization
       const orgMembership = user.memberships.find(
-        (m) => m.organizationId === job.organizationId
+        (m) => m.organizationId === targetOrgId
       );
 
       if (orgMembership) {
@@ -101,10 +113,8 @@ export async function GET(
         const isTechnician = orgMembership.role === ROLES.TECHNICIAN;
 
         if (isAdmin) {
-          // Admin/Dispatcher belonging to this job's organization is authorized
           isAuthorized = true;
-        } else if (isTechnician) {
-          // Technician must be the one assigned to this job
+        } else if (isTechnician && job) {
           if (job.technician?.userId === user.id) {
             isAuthorized = true;
           }

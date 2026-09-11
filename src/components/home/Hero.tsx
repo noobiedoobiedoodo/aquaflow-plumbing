@@ -72,8 +72,8 @@ export function Hero() {
                 </Link>
               </Button>
               <Button size="xl" variant="emergency" asChild className="w-full sm:w-auto">
-                <Link href="tel:204-555-0911" className="flex items-center gap-2">
-                  <Phone className="w-5 h-5" /> (204) 555-0911
+                <Link href="tel:204-558-6438" className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" /> (204) 558-6438
                 </Link>
               </Button>
             </div>

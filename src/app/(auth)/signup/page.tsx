@@ -45,16 +45,17 @@ export default function SignupPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group mb-2">
-            <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-blue to-water-cyan p-0.5 shadow-lg shadow-primary-blue/20">
+            {/* Logo container: structured for easy drop-in of custom logo asset */}
+            <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-blue to-water-cyan p-0.5 shadow-lg shadow-primary-blue/20 shrink-0">
               <div className="absolute inset-0 bg-card rounded-xl m-[1px]" />
-              <Droplets className="w-6 h-6 text-water-cyan relative z-10 group-hover:scale-110 transition-transform duration-300" />
+              <Droplets className="w-6 h-6 text-cyan-400 relative z-10 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <span className="font-sans font-bold text-2xl tracking-tight text-white">
-              Aqua<span className="text-water-cyan">Flow</span>
+              FlowLoop <span className="text-cyan-400">OS</span>
             </span>
           </Link>
           <h2 className="text-3xl font-bold tracking-tight text-white">
-            Start using AquaFlow
+            Start using FlowLoop OS
           </h2>
           <p className="text-sm text-muted-text max-w-sm mx-auto">
             The modern operating system & dispatch platform for plumbing companies.

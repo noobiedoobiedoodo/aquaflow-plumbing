@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Shield, Lock, ArrowLeft, Trash2, CheckCircle2, FileText } from 'lucide-react';
 
 export const metadata = {
-  title: 'Privacy Policy | AquaFlow Plumbing Operating System',
-  description: 'PIPEDA and Quebec Law 25 Compliant Privacy Policy for AquaFlow Plumbing Operating System in Canada.',
+  title: 'Privacy Policy | FlowLoop OS',
+  description: 'PIPEDA and Quebec Law 25 Compliant Privacy Policy for FlowLoop OS in Canada.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
         <div className="flex items-center justify-between pb-6 border-b border-slate-800">
           <Link href="/" className="inline-flex items-center gap-2 text-cyan-400 text-xs font-bold hover:underline">
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to AquaFlow</span>
+            <span>Return to FlowLoop OS</span>
           </Link>
           <span className="text-xs text-slate-500 font-mono">Effective: August 2026</span>
         </div>
@@ -26,10 +26,10 @@ export default function PrivacyPolicyPage() {
             <Shield className="w-3.5 h-3.5" /> PIPEDA & Quebec Law 25 Compliant
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            AquaFlow Privacy & Data Protection Policy
+            FlowLoop OS Privacy & Data Protection Policy
           </h1>
           <p className="text-sm text-slate-400 leading-relaxed">
-            AquaFlow is dedicated to protecting the privacy, security, and confidentiality of plumbing contractors, technicians, and their residential and commercial customers across Canada and the United States.
+            FlowLoop OS is dedicated to protecting the privacy, security, and confidentiality of plumbing contractors, technicians, and their residential and commercial customers across Canada and the United States.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
               Compliance with Canadian Privacy Legislation
             </h2>
             <p>
-              AquaFlow complies with the <em>Personal Information Protection and Electronic Documents Act</em> (<strong>PIPEDA</strong>), Alberta’s <em>Personal Information Protection Act</em> (<strong>PIPA</strong>), British Columbia’s <strong>PIPA</strong>, and Quebec’s <strong>Law 25</strong> (<em>An Act to modernize legislative provisions as regards the protection of personal information</em>).
+              FlowLoop OS complies with the <em>Personal Information Protection and Electronic Documents Act</em> (<strong>PIPEDA</strong>), Alberta’s <em>Personal Information Protection Act</em> (<strong>PIPA</strong>), British Columbia’s <strong>PIPA</strong>, and Quebec’s <strong>Law 25</strong> (<em>An Act to modernize legislative provisions as regards the protection of personal information</em>).
             </p>
           </section>
 
@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
               <li><strong>Contractor Account Information:</strong> Company name, owner/administrator contact name, business address, email, phone number, and fleet size.</li>
               <li><strong>Customer & Work Order Records:</strong> Homeowner/property contact details, service location address, plumbing job description, equipment serial numbers, and job history.</li>
-              <li><strong>Billing & Payment Tokens:</strong> Payment transactions are tokenized directly via Stripe (PCI-DSS Level 1 certified). AquaFlow never stores raw credit card numbers.</li>
+              <li><strong>Billing & Payment Tokens:</strong> Payment transactions are tokenized directly via Stripe (PCI-DSS Level 1 certified). FlowLoop OS never stores raw credit card numbers.</li>
             </ul>
           </section>
 
@@ -73,7 +73,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
               <li><strong>1-Click Deletion:</strong> Organizations can permanently delete applications, cold outreach records, technician accounts, and customer profiles directly from the administrative console.</li>
               <li><strong>Complete Tenant Purge:</strong> If a contractor cancels their subscription, all associated job records, customer databases, and uploaded photos can be permanently expunged upon request.</li>
-              <li><strong>Erasure Requests:</strong> To request complete data erasure, contact our Data Privacy Officer at <a href="mailto:privacy@aquaflowplumbing.com" className="text-cyan-400 underline">privacy@aquaflowplumbing.com</a>. Requests are fulfilled within 30 business days.</li>
+              <li><strong>Erasure Requests:</strong> To request complete data erasure, contact our Data Privacy Officer at <a href="mailto:privacy@flowloopos.com" className="text-cyan-400 underline">privacy@flowloopos.com</a>. Requests are fulfilled within 30 business days.</li>
             </ul>
           </section>
 
@@ -106,8 +106,8 @@ export default function PrivacyPolicyPage() {
               If you have any questions regarding your data or wish to exercise your rights under PIPEDA or Quebec Law 25, please contact:
             </p>
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1 font-mono">
-              <div className="text-white font-bold">AquaFlow Data Protection & Privacy Office</div>
-              <div className="text-slate-400">Email: <a href="mailto:privacy@aquaflowplumbing.com" className="text-cyan-400">privacy@aquaflowplumbing.com</a></div>
+              <div className="text-white font-bold">FlowLoop OS Data Protection & Privacy Office</div>
+              <div className="text-slate-400">Email: <a href="mailto:privacy@flowloopos.com" className="text-cyan-400">privacy@flowloopos.com</a></div>
               <div className="text-slate-400">Jurisdiction: Canada / PIPEDA Compliance</div>
             </div>
           </section>

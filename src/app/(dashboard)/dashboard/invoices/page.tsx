@@ -50,7 +50,12 @@ export default async function InvoicesDashboardPage() {
                   return (
                     <tr key={invoice.id} className="hover:bg-neutral-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-neutral-900">
-                        {invoice.invoiceNumber}
+                        <div className="flex items-center gap-2">
+                          <span>{invoice.invoiceNumber}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
+                            v{invoice.currentVersion}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-neutral-900 font-medium">{invoice.customer?.firstName} {invoice.customer?.lastName}</div>
@@ -66,6 +71,7 @@ export default async function InvoicesDashboardPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          invoice.status === 'SIGNED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                           invoice.status === 'PAID' ? 'bg-green-50 text-green-700 border-green-200' :
                           invoice.status === 'PARTIALLY_PAID' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                           invoice.status === 'VOID' ? 'bg-neutral-100 text-neutral-600 border-neutral-200' :
@@ -74,13 +80,12 @@ export default async function InvoicesDashboardPage() {
                           {invoice.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right space-x-3">
                         <Link 
-                          href={`/pay/${invoice.paymentToken}`} 
-                          target="_blank"
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                          href={`/dashboard/invoices/${invoice.id}`}
+                          className="text-neutral-900 hover:text-blue-600 font-semibold text-sm inline-flex items-center gap-1"
                         >
-                          View Portal ↗
+                          Manage & Audit →
                         </Link>
                       </td>
                     </tr>

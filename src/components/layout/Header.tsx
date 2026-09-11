@@ -7,12 +7,13 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md glass">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue to-water-cyan p-0.5">
+          {/* Logo container: structured for easy drop-in of custom logo asset */}
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue to-water-cyan p-0.5 shrink-0">
             <div className="absolute inset-0 bg-background rounded-xl m-[1px]"></div>
-            <Droplets className="w-5 h-5 text-water-cyan relative z-10 group-hover:scale-110 transition-transform duration-300" />
+            <Droplets className="w-5 h-5 text-cyan-400 relative z-10 group-hover:scale-110 transition-transform duration-300" />
           </div>
           <span className="font-sans font-bold text-xl tracking-tight text-white">
-            Aqua<span className="text-water-cyan">Flow</span>
+            FlowLoop <span className="text-cyan-400">OS</span>
           </span>
         </Link>
 

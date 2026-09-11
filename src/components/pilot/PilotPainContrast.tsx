@@ -92,7 +92,7 @@ export function PilotPainContrast() {
             </div>
           </motion.div>
 
-          {/* THE AQUAFLOW SOLUTION CARD */}
+          {/* THE FLOWLOOP OS SOLUTION CARD */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -102,7 +102,7 @@ export function PilotPainContrast() {
           >
             {/* Best Value Badge */}
             <div className="absolute -top-3.5 right-8 px-4 py-1 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 font-extrabold text-xs tracking-wider uppercase shadow-lg">
-              The AquaFlow Way
+              The FlowLoop OS Way
             </div>
 
             <div>

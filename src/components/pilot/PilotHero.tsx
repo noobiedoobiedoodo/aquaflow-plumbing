@@ -64,7 +64,7 @@ export function PilotHero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal"
         >
-          AquaFlow gives growing plumbing companies <span className="text-white font-semibold">one unified operating system</span> to manage bookings, dispatch, technicians, customers, invoices, payments, and automated follow-ups — without stitching together five disconnected apps.
+          FlowLoop OS gives growing plumbing companies <span className="text-white font-semibold">one unified operating system</span> to manage bookings, dispatch, technicians, customers, invoices, payments, and automated follow-ups — without stitching together five disconnected apps.
         </motion.p>
 
         {/* CTA Buttons */}
@@ -86,7 +86,7 @@ export function PilotHero() {
             href="#how-it-works"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-700/80 text-white font-semibold text-base backdrop-blur-md hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(0,136,255,0.2)] transition-all"
           >
-            <span>See How AquaFlow Works</span>
+            <span>See How FlowLoop OS Works</span>
             <ChevronRight className="w-4 h-4 text-cyan-400" />
           </a>
         </motion.div>
@@ -121,7 +121,7 @@ export function PilotHero() {
         >
           <div className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-4 flex items-center justify-center gap-2">
             <Sparkles className="w-4 h-4" />
-            THE COMPLETE AQUAFLOW OPERATIONAL LIFECYCLE
+            THE COMPLETE FLOWLOOP OS OPERATIONAL LIFECYCLE
           </div>
 
           <div className="glass rounded-3xl p-4 sm:p-6 border border-cyan-500/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden">

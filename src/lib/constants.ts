@@ -8,15 +8,15 @@
 
 export const COMPANY = {
   /** @placeholder Replace with real company name */
-  name: 'AquaFlow Plumbing' /* PLACEHOLDER */,
+  name: 'FlowLoop OS' /* PLACEHOLDER */,
   /** @placeholder Replace with real tagline */
   tagline: 'Plumbing, Engineered Right.' /* PLACEHOLDER */,
   /** @placeholder Replace with real phone number */
-  phone: '(204) 555-0199' /* PLACEHOLDER */,
+  phone: '(204) 558-6438',
   /** @placeholder Replace with real emergency phone */
-  emergencyPhone: '(204) 555-0911' /* PLACEHOLDER */,
+  emergencyPhone: '(204) 558-6438',
   /** @placeholder Replace with real email */
-  email: 'info@aquaflowplumbing.com' /* PLACEHOLDER */,
+  email: 'info@flowloopos.com' /* PLACEHOLDER */,
   /** @placeholder Replace with real address */
   address: '123 Main Street' /* PLACEHOLDER */,
   city: 'Winnipeg' /* PLACEHOLDER */,
@@ -25,7 +25,7 @@ export const COMPANY = {
   country: 'CA',
   timezone: 'America/Winnipeg',
   /** @placeholder Replace with real website URL */
-  url: 'https://aquaflowplumbing.com' /* PLACEHOLDER */,
+  url: 'https://flowloopos.com' /* PLACEHOLDER */,
 } as const;
 
 export const BRAND = {

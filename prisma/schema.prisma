@@ -74,6 +74,10 @@ model Organization {
   assignmentOverrides   AssignmentOverride[]
   operationalForecasts  OperationalForecast[]
   optimizationProposals OptimizationProposal[]
+  invoiceVersions       InvoiceVersion[]
+  invoiceSignatures     InvoiceSignature[]
+  invoiceConsentRecords InvoiceConsentRecord[]
+  invoiceAuditEvents    InvoiceAuditEvent[]
 }
 
 // ============================================================================
@@ -203,6 +207,8 @@ model Customer {
   estimateApprovals        EstimateApproval[]
   tasks                    Task[]
   supportTickets           SupportTicket[]
+  invoiceConsentRecords    InvoiceConsentRecord[]
+  invoiceSignatures        InvoiceSignature[]
 
   @@unique([userId, organizationId])
   @@index([organizationId])
@@ -463,7 +469,6 @@ model Appointment {
   @@index([organizationId, status])
   @@index([customerId])
   @@index([technicianId])
-  @@index([appointmentNumber])
 }
 
 // ============================================================================
@@ -582,6 +587,7 @@ model JobTimeEntry {
   technician User @relation(fields: [technicianId], references: [id])
 
   @@index([jobId])
+  @@index([technicianId])
 }
 
 model CustomerSignature {
@@ -657,28 +663,171 @@ model Invoice {
   jobId          String    @unique
   customerId     String
   paymentToken   String    @unique @default(uuid()) // Secure public URL token
-  status         String    @default("DRAFT") // DRAFT, SENT, PARTIALLY_PAID, PAID, OVERDUE, VOID
+  status         String    @default("DRAFT") // DRAFT, SENT, VIEWED, AWAITING_SIGNATURE, SIGNING_IN_PROGRESS, SIGNED, PARTIALLY_PAID, PAID, OVERDUE, VOID, SUPERSEDED, SIGNATURE_INVALIDATED
   subtotal       Float     @default(0)
   taxTotal       Float     @default(0)
   total          Float     @default(0)
   amountPaid     Float     @default(0)
   dueDate        DateTime?
   issuedAt       DateTime?
+
+  // Electronic Document & Immutability Subsystem
+  currentVersion        Int       @default(1)
+  isImmutable           Boolean   @default(false)
+  signedAt              DateTime?
+  stripeCustomerId      String?
+  stripeInvoiceId       String?
+  stripePaymentIntentId String?
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  organization Organization        @relation(fields: [organizationId], references: [id])
-  job          Job                 @relation(fields: [jobId], references: [id])
-  customer     Customer            @relation(fields: [customerId], references: [id])
-  lines        InvoiceLine[]
-  taxes        InvoiceTax[]
-  payments     Payment[]
-  activities   FinancialActivity[]
+  organization   Organization        @relation(fields: [organizationId], references: [id])
+  job            Job                 @relation(fields: [jobId], references: [id])
+  customer       Customer            @relation(fields: [customerId], references: [id])
+  lines          InvoiceLine[]
+  taxes          InvoiceTax[]
+  payments       Payment[]
+  activities     FinancialActivity[]
   supportTickets SupportTicket[]
+  
+  versions       InvoiceVersion[]
+  signatures     InvoiceSignature[]
+  consentRecords InvoiceConsentRecord[]
+  auditEvents    InvoiceAuditEvent[]
 
   @@index([organizationId, status])
-  @@index([paymentToken])
   @@index([customerId])
+}
+
+// ============================================================================
+// FLOWLOOPOS ELECTRONIC DOCUMENT, SIGNATURE & EVIDENCE SUBSYSTEM
+// ============================================================================
+
+model InvoiceVersion {
+  id                    String    @id @default(uuid())
+  organizationId        String    // Tenant ID
+  invoiceId             String
+  versionNumber         Int       @default(1) // 1, 2, 3...
+  
+  // Canonical snapshot payload of line items, quantities, prices, taxes, totals, terms
+  snapshotData          String    // Canonical JSON string
+  canonicalDocumentHash String    // SHA-256(canonical JSON)
+  signedPdfHash         String?   // SHA-256(signed static PDF buffer)
+  signedPdfKey          String?   // Storage key for the generated static PDF
+  
+  status                String    @default("DRAFT") // DRAFT, SENT, VIEWED, AWAITING_SIGNATURE, SIGNING_IN_PROGRESS, SIGNED, SUPERSEDED, VOID
+  
+  // Idempotency & Concurrency Signing Lock
+  signingLockId         String?   // UUID for atomic in-flight signing lock
+  signingLockedAt       DateTime?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  invoice        Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  signatures     InvoiceSignature[]
+  consentRecords InvoiceConsentRecord[]
+  auditEvents    InvoiceAuditEvent[]
+
+  @@unique([invoiceId, versionNumber])
+  @@index([organizationId])
+  @@index([canonicalDocumentHash])
+}
+
+model InvoiceConsentRecord {
+  id                 String    @id @default(uuid())
+  organizationId     String    // Tenant ID
+  invoiceId          String
+  invoiceVersionId   String
+  customerId         String
+  
+  consentText        String    // Exact legal consent text agreed to
+  consentTextVersion String    // e.g. "2026-v1-MB-ECIA"
+  consentedAt        DateTime  @default(now())
+  
+  ipAddress          String
+  userAgent          String
+  sessionId          String?
+  requestId          String?
+
+  invoice        Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceVersion InvoiceVersion @relation(fields: [invoiceVersionId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  customer       Customer       @relation(fields: [customerId], references: [id])
+  signatures     InvoiceSignature[]
+
+  @@index([organizationId])
+  @@index([invoiceId])
+  @@index([invoiceVersionId])
+}
+
+model InvoiceSignature {
+  id                    String    @id @default(uuid())
+  organizationId        String    // Tenant ID
+  invoiceId             String
+  invoiceVersionId      String
+  customerId            String
+  consentRecordId       String
+  
+  signerName            String
+  signerEmail           String
+  signatureMethod       String    // DRAWN_CANVAS, TYPED, DIGITAL_CLICK
+  signatureData         String?   // Base64 PNG image or typed representation
+  
+  canonicalDocumentHash String    // SHA-256 of canonical snapshot at signing time
+  signedPdfHash         String    // SHA-256 of stored signed PDF artifact
+  signedPdfKey          String    // Storage key of immutable static PDF in private storage
+  
+  signatureTimestamp    DateTime  @default(now())
+  ipAddress             String
+  userAgent             String
+  timezone              String    @default("America/Winnipeg")
+  requestId             String?
+  sessionId             String?
+  authenticationMethod  String    // CUSTOMER_PORTAL_SESSION, SECURE_TOKEN_LINK
+  
+  signatureStatus       String    @default("VALID") // VALID, REVOKED, SUPERSEDED, INVALIDATED
+  
+  createdAt             DateTime  @default(now())
+
+  invoice        Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceVersion InvoiceVersion       @relation(fields: [invoiceVersionId], references: [id], onDelete: Cascade)
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  customer       Customer             @relation(fields: [customerId], references: [id])
+  consentRecord  InvoiceConsentRecord @relation(fields: [consentRecordId], references: [id])
+
+  @@unique([organizationId, invoiceVersionId]) // Hard uniqueness prevents duplicate signatures on same version
+  @@index([organizationId])
+  @@index([invoiceId])
+  @@index([canonicalDocumentHash])
+  @@index([signedPdfHash])
+}
+
+model InvoiceAuditEvent {
+  id                    String    @id @default(uuid())
+  organizationId        String    // Tenant ID
+  invoiceId             String
+  invoiceVersionId      String?
+  actorId               String?   // User or Customer ID
+  actorType             String    // STAFF, CUSTOMER, SYSTEM, STRIPE_WEBHOOK
+  
+  eventType             String    // INVOICE_CREATED, INVOICE_SENT, INVOICE_VIEWED, CONSENT_ACCEPTED, SIGNING_STARTED, SIGNING_FAILED, INVOICE_SIGNED, PDF_GENERATED, INVOICE_REVISED, INVOICE_VOIDED
+  eventDetails          String    // JSON description of event & context
+  
+  canonicalDocumentHash String?
+  signedPdfHash         String?
+  ipAddress             String?
+  userAgent             String?
+  createdAt             DateTime  @default(now())
+
+  invoice        Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceVersion InvoiceVersion? @relation(fields: [invoiceVersionId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, invoiceId])
+  @@index([invoiceId, createdAt])
 }
 
 model InvoiceLine {
@@ -741,7 +890,6 @@ model Payment {
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 
   @@index([status])
-  @@index([providerPaymentId])
   @@index([invoiceId])
 }
 
@@ -839,6 +987,7 @@ model Notification {
   @@index([userId, type])
   @@index([organizationId, status])
   @@index([scheduledFor])
+  @@index([status, scheduledFor])
 }
 
 // ============================================================================
@@ -861,6 +1010,8 @@ model AuditLog {
 
   @@index([organizationId, entity])
   @@index([entityId])
+  @@index([organizationId, createdAt])
+  @@index([userId])
 }
 
 // ============================================================================
@@ -887,6 +1038,7 @@ model Event {
   @@index([organizationId, status])
   @@index([entityId])
   @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model JobActivity {
@@ -1164,3 +1316,59 @@ model OptimizationProposal {
   @@index([organizationId])
   @@index([jobId])
 }
+
+// ============================================================================
+// PILOT APPLICATIONS & COLD PROSPECTS (Lead Gen Pipeline)
+// ============================================================================
+// Previously managed via raw SQL; now tracked by Prisma migrations.
+
+model PilotApplication {
+  id              String   @id @default(uuid())
+  companyName     String   @map("company_name") @db.VarChar(255)
+  contactName     String   @map("contact_name") @db.VarChar(255)
+  email           String   @db.VarChar(255)
+  phone           String   @db.VarChar(100)
+  website         String?  @db.VarChar(255)
+  city            String   @db.VarChar(100)
+  province        String   @db.VarChar(100)
+  technicianCount String   @map("technician_count") @db.VarChar(100)
+  painPoints      String   @map("pain_points") // JSON array
+  notes           String?
+  status          String   @default("NEW") @db.VarChar(50) // NEW, CONTACTED, QUALIFIED, APPROVED, WAITLIST, ONBOARDING, ONBOARDED, DECLINED
+  source          String   @default("direct") @db.VarChar(100)
+  utmSource       String?  @map("utm_source") @db.VarChar(255)
+  utmMedium       String?  @map("utm_medium") @db.VarChar(255)
+  utmCampaign     String?  @map("utm_campaign") @db.VarChar(255)
+  utmContent      String?  @map("utm_content") @db.VarChar(255)
+  referrer        String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([status])
+  @@map("pilot_applications")
+}
+
+model ColdProspect {
+  id              String   @id @default(uuid())
+  companyName     String   @map("company_name") @db.VarChar(255)
+  contactName     String   @map("contact_name") @db.VarChar(255)
+  title           String   @default("Owner") @db.VarChar(100)
+  email           String   @unique @db.VarChar(255)
+  phone           String   @db.VarChar(100)
+  website         String?  @db.VarChar(255)
+  city            String   @db.VarChar(100)
+  state           String   @db.VarChar(50)
+  technicianCount String   @map("technician_count") @db.VarChar(100)
+  painPoints      String   @map("pain_points") // JSON array
+  interestLevel   String   @default("UNDECIDED") @map("interest_level") @db.VarChar(20) // GREEN, YELLOW, RED, UNDECIDED
+  outreachStatus  String   @default("NOT_CONTACTED") @map("outreach_status") @db.VarChar(50) // NOT_CONTACTED, EMAIL_SENT, CALLED, IN_CONVERSATION, PROVISIONED
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([state])
+  @@index([interestLevel])
+  @@map("cold_prospects")
+}
+

@@ -77,19 +77,10 @@ export async function POST(req: NextRequest) {
       referrer: validated.referrer,
     });
 
-    console.log('====================================================');
-    console.log('🚨 NEW AQUAFLOW $199 PILOT APPLICATION PERSISTED 🚨');
-    console.log(`Lead ID:     ${lead.id}`);
-    console.log(`Company:     ${lead.companyName}`);
-    console.log(`Contact:     ${lead.contactName}`);
-    console.log(`Email:       ${lead.email}`);
-    console.log(`Phone:       ${lead.phone}`);
-    console.log(`Location:    ${lead.city}, ${lead.province}`);
-    console.log(`Tech Count:  ${lead.technicianCount}`);
-    console.log(`Pain Points: ${lead.painPoints.join(', ')}`);
-    console.log(`Attribution: utm_source=${lead.utmSource || 'none'}, campaign=${lead.utmCampaign || 'none'}`);
-    console.log(`Duplicate:   ${isDuplicate ? 'YES (Handled Gracefully)' : 'NO (Fresh Lead)'}`);
-    console.log('====================================================');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[PilotLead] ${isDuplicate ? 'Duplicate' : 'New'} application: ${lead.companyName} (${lead.id.slice(0, 8)})`);
+    }
+
 
     // 2. Dispatches private alert email ONLY to the founder (100% hidden from applicant)
     const alertEmail = process.env.FOUNDER_ALERT_EMAIL;
@@ -98,7 +89,7 @@ export async function POST(req: NextRequest) {
         try {
           const { Resend } = await import('resend');
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Alerts <onboarding@resend.dev>';
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Alerts <onboarding@flowloopos.com>';
 
           // Send private alert ONLY to founder
           await resend.emails.send({

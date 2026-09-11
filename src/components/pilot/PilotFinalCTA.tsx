@@ -31,7 +31,7 @@ export function PilotFinalCTA() {
           </h2>
 
           <p className="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            AquaFlow brings your jobs, technicians, customers, invoices, and payments into one seamless operating system.
+            FlowLoop OS brings your jobs, technicians, customers, invoices, and payments into one seamless operating system.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

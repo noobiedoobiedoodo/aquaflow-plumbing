@@ -67,7 +67,7 @@ export default async function OperationsCommandCenter() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-4">
       <RealTimeListener />
-      <h1 className="text-2xl font-bold tracking-tight text-neutral-900">AQUAFLOW OPERATIONS</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-neutral-900">FLOWLOOP OS OPERATIONS</h1>
       
       {/* Top Metrics Bar */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

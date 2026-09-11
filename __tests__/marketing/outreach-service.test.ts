@@ -37,6 +37,6 @@ describe('Automated Cold Outreach Service Suite', () => {
 
     expect(email.text).toContain('reply "Unsubscribe"');
     expect(email.html).toContain('opt out');
-    expect(email.html).toContain('AquaFlow Systems Inc.');
+    expect(email.html).toContain('FlowLoop Systems Inc.');
   });
 });

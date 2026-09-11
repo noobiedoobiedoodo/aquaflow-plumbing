@@ -51,7 +51,7 @@ const FEATURES = [
     icon: Zap,
     title: 'Autonomous Operational Triggers',
     headline: 'Automate follow-ups while you sleep.',
-    description: 'AquaFlow automatically sends booking confirmations, technician en-route SMS alerts, invoice reminders, and review requests without manual intervention.',
+    description: 'FlowLoop OS automatically sends booking confirmations, technician en-route SMS alerts, invoice reminders, and review requests without manual intervention.',
     benefit: 'Operate like a 20-truck enterprise from day one',
   },
 ];
@@ -72,7 +72,7 @@ export function PilotFeatureGrid() {
             Every feature drives a measurable business outcome.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300">
-            We didn&apos;t build generic software with a plumbing logo slapped on it. AquaFlow is purpose-built to solve the specific bottlenecks that slow down plumbing operations.
+            We didn&apos;t build generic software with a plumbing logo slapped on it. FlowLoop OS is purpose-built to solve the specific bottlenecks that slow down plumbing operations.
           </p>
         </div>
 

@@ -31,7 +31,7 @@ export function generateColdEmailContent(payload: OutreachEmailPayload) {
 
 I noticed ${companyName} is running a strong team in ${city}.
 
-We built AquaFlow specifically for independent contractors with ${technicianCount} who are sick of paying $1,200/month for bloated ServiceTitan contracts or dealing with ${primaryPain.toLowerCase()}.
+We built FlowLoop OS specifically for independent contractors with ${technicianCount} who are sick of paying $1,200/month for bloated ServiceTitan contracts or dealing with ${primaryPain.toLowerCase()}.
 
 We are currently onboarding 3 founding plumbing partners in ${city} for our $199/month lifetime cohort (unlimited multi-tech dispatch, automated SMS on-my-way alerts, and instant card deposits on site).
 
@@ -42,11 +42,11 @@ ${pilotUrl}
 
 Best regards,
 Stephan Sabeski
-Founding Team | AquaFlow Plumbing Operating System
+Founding Team | FlowLoop OS
 ${pilotUrl}
 
 ---
-AquaFlow Systems Inc. | 100 Innovation Way, Dallas TX / Winnipeg MB
+FlowLoop Systems Inc. | 100 Innovation Way, Dallas TX / Winnipeg MB
 To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
 
   const html = `
@@ -83,7 +83,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     <!-- BRAND TOP BAR -->
     <div class="top-bar">
       <a href="${pilotUrl}" style="text-decoration: none;">
-        <h1 class="brand-title">💧 AquaFlow<span style="color: #38bdf8;">OS</span></h1>
+        <h1 class="brand-title">FlowLoop <span style="color: #38bdf8;">OS</span></h1>
       </a>
       <br/>
       <div class="badge">🚀 Founding Partner Cohort • ${city}, ${state}</div>
@@ -93,7 +93,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     <div class="content">
       <div class="salutation">Hi ${firstName},</div>
       <p>I noticed <strong>${companyName}</strong> is running a high-demand plumbing team in <strong>${city}</strong>.</p>
-      <p>We built AquaFlow specifically for independent contractors managing <strong>${technicianCount}</strong> who are tired of paying $1,200/month for bloated enterprise software or dealing with <strong>${primaryPain.toLowerCase()}</strong>.</p>
+      <p>We built FlowLoop OS specifically for independent contractors managing <strong>${technicianCount}</strong> who are tired of paying $1,200/month for bloated enterprise software or dealing with <strong>${primaryPain.toLowerCase()}</strong>.</p>
       
       <!-- 3 VALUE PILLARS -->
       <div class="feature-grid">
@@ -112,13 +112,13 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
       </div>
 
       <!-- PRICING COMPARISON -->
-      <div class="comparison-box">
+      <div className="comparison-box">
         <div class="comp-row">
           <span style="color: #94a3b8;">Legacy Software (ServiceTitan)</span>
           <span style="color: #f87171;">$1,200+/mo • 12-Mo Lock-in</span>
         </div>
         <div class="comp-row">
-          <span style="color: #38bdf8;">AquaFlow Founding Pilot</span>
+          <span style="color: #38bdf8;">FlowLoop OS Founding Pilot</span>
           <span style="color: #34d399;">$199/mo Flat • Lifetime Rate (No Contracts)</span>
         </div>
       </div>
@@ -139,9 +139,9 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     <div class="footer">
       <div class="signoff">
         <strong>Stephan Sabeski</strong> • Founding Team<br/>
-        AquaFlow Plumbing Operating System • <a href="${pilotUrl}" style="color: #0284c7; font-weight: bold; text-decoration: none;">${domainDisplay}/pilot</a>
+        FlowLoop OS • <a href="${pilotUrl}" style="color: #0284c7; font-weight: bold; text-decoration: none;">${domainDisplay}/pilot</a>
       </div>
-      AquaFlow Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br/>
+      FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br/>
       <em>To opt out of future partner invites, reply "Unsubscribe" or manage preferences <a href="${privacyUrl}" style="color: #64748b;">here</a>.</em>
     </div>
   </div>
@@ -167,7 +167,7 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
   try {
     const { Resend } = await import('resend');
     const resend = new Resend(apiKey);
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'AquaFlow Growth <onboarding@resend.dev>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Growth <onboarding@resend.dev>';
 
     const emailContent = generateColdEmailContent({
       to: prospect.email,

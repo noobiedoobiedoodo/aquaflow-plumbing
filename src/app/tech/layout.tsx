@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/tech/BottomNav';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Technician Portal | AquaFlow',
+  title: 'Technician Portal | FlowLoop OS',
   description: 'Mobile-first job execution workspace for field technicians.',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
 };

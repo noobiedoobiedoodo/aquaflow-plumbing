@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Dispatch Dashboard | AquaFlow',
+  title: 'Dispatch Dashboard | FlowLoop OS',
   description: 'Operational control plane for dispatchers and administrators.',
 };
 

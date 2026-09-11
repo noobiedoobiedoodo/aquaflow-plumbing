@@ -6,12 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const FAQS = [
   {
-    q: 'What is AquaFlow?',
-    a: 'AquaFlow is a unified operations platform built specifically for residential and commercial plumbing companies. It centralizes customer booking, route dispatch, technician mobile workflows, digital signatures, invoicing, and Stripe payments into one intuitive system.',
+    q: 'What is FlowLoop OS?',
+    a: 'FlowLoop OS is a unified operations platform built specifically for residential and commercial plumbing companies. It centralizes customer booking, route dispatch, technician mobile workflows, digital signatures, invoicing, and Stripe payments into one intuitive system.',
   },
   {
-    q: 'Who is AquaFlow designed for?',
-    a: 'AquaFlow is built for owner-operators and growing plumbing companies with 1 to 25+ technicians who are tired of losing jobs to missed calls, juggling paper invoices, texting addresses back and forth, or paying thousands of dollars for bloated legacy enterprise software.',
+    q: 'Who is FlowLoop OS designed for?',
+    a: 'FlowLoop OS is built for owner-operators and growing plumbing companies with 1 to 25+ technicians who are tired of losing jobs to missed calls, juggling paper invoices, texting addresses back and forth, or paying thousands of dollars for bloated legacy enterprise software.',
   },
   {
     q: 'Why is the founding pilot only $199/month?',
@@ -30,16 +30,16 @@ const FAQS = [
     a: 'Yes. You receive 100% white-glove setup directly from the engineering founders. We configure your company profile, technician logins, service menu, pricing rates, and Stripe payment account with you.',
   },
   {
-    q: 'Can AquaFlow handle multiple technicians and vans?',
-    a: 'Yes. AquaFlow supports solo operators as well as multi-technician fleets. You can schedule jobs across multiple technicians, track real-time job statuses, and route calls with zero per-seat penalty fees during the pilot.',
+    q: 'Can FlowLoop OS handle multiple technicians and vans?',
+    a: 'Yes. FlowLoop OS supports solo operators as well as multi-technician fleets. You can schedule jobs across multiple technicians, track real-time job statuses, and route calls with zero per-seat penalty fees during the pilot.',
   },
   {
     q: 'Can customers pay invoices online via credit card?',
-    a: 'Yes. AquaFlow includes native Stripe Connect integration. Customers can pay invoices instantly on-site via the technician workspace or through their self-service customer portal. Funds settle directly into your verified bank account.',
+    a: 'Yes. FlowLoop OS includes native Stripe Connect integration. Customers can pay invoices instantly on-site via the technician workspace or through their self-service customer portal. Funds settle directly into your verified bank account.',
   },
   {
-    q: 'Can my technicians use AquaFlow from their phones?',
-    a: 'Yes. AquaFlow is 100% mobile-optimized for iPhone and Android. Technicians do not need special tablets or expensive hardware — they simply log into their secure technician workspace from their mobile browser.',
+    q: 'Can my technicians use FlowLoop OS from their phones?',
+    a: 'Yes. FlowLoop OS is 100% mobile-optimized for iPhone and Android. Technicians do not need special tablets or expensive hardware — they simply log into their secure technician workspace from their mobile browser.',
   },
   {
     q: 'Is there a long-term contract or cancellation fee?',

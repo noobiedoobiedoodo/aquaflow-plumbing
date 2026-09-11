@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    setupFiles: [],
+    setupFiles: ['dotenv/config'],
     testTimeout: 20000,
   },
   resolve: {

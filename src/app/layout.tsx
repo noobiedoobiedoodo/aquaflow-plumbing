@@ -17,11 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AquaFlow Plumbing | Professional Plumbing Services",
-  description: "Premium plumbing services and solutions.",
+  title: "FlowLoop OS | Next-Generation Trade & Dispatch Operating System",
+  description: "Modern operating system and dispatch software for trade contractors.",
   openGraph: {
-    title: "AquaFlow Plumbing",
-    description: "Premium plumbing services and solutions.",
+    title: "FlowLoop OS",
+    description: "Modern operating system and dispatch software for trade contractors.",
     type: "website",
   },
 };

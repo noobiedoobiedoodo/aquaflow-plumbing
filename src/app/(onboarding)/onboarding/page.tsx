@@ -28,7 +28,7 @@ export default async function OnboardingPage() {
       <div className="w-full max-w-lg space-y-8 bg-white p-8 shadow rounded-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            AquaFlow Setup
+            FlowLoop OS Setup
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Let's get {org.name} ready for business.

@@ -1,88 +1,90 @@
 import { prisma } from '../src/lib/db';
+import { generateAppointmentNumber } from '../src/lib/utils';
 
-async function runTests() {
-  console.log('--- STARTING BOOKING API TESTS ---');
+async function main() {
+  const service = await prisma.service.findFirst({
+    where: { organization: { slug: 'aquaflow' } }
+  });
+  console.log('Using service:', service?.id, service?.name);
+  const organizationId = service!.organizationId;
 
-  const API_URL = 'http://localhost:3000/api/booking';
-
-  // Helper to make requests
-  const sendRequest = async (payload: any) => {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+  const result = await prisma.$transaction(async (tx) => {
+    let user = await tx.user.findUnique({
+      where: { email: 'live.customer@example.com' }
     });
-  };
+    if (!user) {
+      user = await tx.user.create({
+        data: {
+          email: 'live.customer@example.com',
+          firstName: 'Live',
+          lastName: 'Pilot Customer',
+          phone: '2045550199'
+        }
+      });
+    }
 
-  // Get a valid service ID from DB
-  const service = await prisma.service.findFirst({ where: { isActive: true } });
-  if (!service) throw new Error("No services found");
-  
-  const validPayload = {
-    serviceId: service.id,
-    problemDescription: 'My sink is leaking really badly and I need help right away.',
-    urgency: 'NORMAL',
-    date: '2026-10-15',
-    startTime: '09:00',
-    endTime: '11:00',
-    address: '123 Test Ave',
-    city: 'Winnipeg',
-    province: 'MB',
-    postalCode: 'R3C 1A1',
-    firstName: 'John',
-    lastName: 'Test',
-    email: 'john.test@example.com',
-    phone: '(555) 123-4567'
-  };
+    let customer = await tx.customer.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: user.id,
+          organizationId
+        }
+      }
+    });
 
-  try {
-    // 1. New customer -> New property
-    console.log('\n1. Testing: New customer -> new property');
-    let res = await sendRequest(validPayload);
-    let data = await res.json();
-    console.log('Status:', res.status, data.success ? 'Success' : 'Failed');
-    
-    // 2. Existing customer -> Existing property
-    console.log('\n2. Testing: Existing customer -> existing property');
-    res = await sendRequest(validPayload);
-    data = await res.json();
-    console.log('Status:', res.status, data.success ? 'Success' : 'Failed');
+    if (!customer) {
+      customer = await tx.customer.create({
+        data: {
+          organizationId,
+          userId: user.id,
+          firstName: 'Live',
+          lastName: 'Pilot Customer',
+          phone: '2045550199'
+        }
+      });
+    }
 
-    // 3. Existing customer -> New property
-    console.log('\n3. Testing: Existing customer -> new property');
-    res = await sendRequest({ ...validPayload, address: '456 Different St' });
-    data = await res.json();
-    console.log('Status:', res.status, data.success ? 'Success' : 'Failed');
+    const property = await tx.property.create({
+      data: {
+        organizationId,
+        customerId: customer.id,
+        address: '123 Main St',
+        city: 'Winnipeg',
+        province: 'MB',
+        postalCode: 'R3C 1A5'
+      }
+    });
 
-    // 4. Invalid service ID
-    console.log('\n4. Testing: Invalid service ID');
-    res = await sendRequest({ ...validPayload, serviceId: 'not-a-uuid' });
-    data = await res.json();
-    console.log('Status:', res.status, data.error ? 'Validation caught it' : 'Failed');
+    const appointmentNumber = generateAppointmentNumber();
+    const appointment = await tx.appointment.create({
+      data: {
+        appointmentNumber,
+        organizationId,
+        customerId: customer.id,
+        propertyId: property.id,
+        serviceId: service!.id,
+        date: new Date('2026-08-25'),
+        startTime: '09:00',
+        endTime: '11:00',
+        status: 'PENDING',
+        priority: 'STANDARD',
+        isEmergency: false,
+        problemDescription: 'Commercial water heater diagnostic'
+      }
+    });
 
-    // 5. Invalid Canadian postal code
-    console.log('\n5. Testing: Invalid postal code');
-    res = await sendRequest({ ...validPayload, postalCode: '12345' });
-    data = await res.json();
-    console.log('Status:', res.status, data.error ? 'Validation caught it' : 'Failed');
+    const job = await tx.job.create({
+      data: {
+        appointmentId: appointment.id,
+        organizationId,
+        status: 'CREATED'
+      }
+    });
 
-    // 6. Emergency Booking
-    console.log('\n6. Testing: Emergency Booking');
-    res = await sendRequest({ ...validPayload, urgency: 'EMERGENCY' });
-    data = await res.json();
-    console.log('Status:', res.status, data.success ? 'Success' : 'Failed');
-    
-    // 7. Missing Date
-    console.log('\n7. Testing: Missing Date');
-    const { date, ...payloadWithoutDate } = validPayload;
-    res = await sendRequest(payloadWithoutDate);
-    data = await res.json();
-    console.log('Status:', res.status, data.error ? 'Validation caught it' : 'Failed');
+    return { appointmentNumber, jobId: job.id, customerId: customer.id };
+  });
 
-    console.log('\n--- TESTS COMPLETED ---');
-  } catch (error) {
-    console.error('Test script error:', error);
-  }
+  console.log('Booking creation result:', result);
 }
 
-runTests();
+main().catch(console.error);

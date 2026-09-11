@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'All Assigned Jobs | AquaFlow Tech',
+  title: 'All Assigned Jobs | FlowLoop OS Tech',
 };
 
 export default async function TechAllJobsPage() {

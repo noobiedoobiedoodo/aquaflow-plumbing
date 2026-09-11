@@ -69,7 +69,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message: 'Unauthorized: Access restricted to verified AquaFlow administrators.',
+          message: 'Unauthorized: Access restricted to verified FlowLoop OS administrators.',
         },
         { status: 401 }
       );
@@ -122,7 +122,7 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          message: 'Unauthorized: Access restricted to verified AquaFlow administrators.',
+          message: 'Unauthorized: Access restricted to verified FlowLoop OS administrators.',
         },
         { status: 401 }
       );
