@@ -9,7 +9,7 @@ interface BrandLogoProps {
   theme?: 'dark' | 'light';
   showText?: boolean;
   textClassName?: string;
-  variant?: 'full' | 'icon' | 'pro';
+  variant?: 'full' | 'icon' | 'pro' | 'clean';
   /**
    * Optional custom image path override.
    */
@@ -49,13 +49,13 @@ export function BrandLogo({
   const isLight = theme === 'light';
 
   // If full lockup variant requested (default)
-  if (variant === 'full' || variant === 'pro') {
+  if (variant === 'full' || variant === 'pro' || variant === 'clean') {
     let fullSrc = logoSrc;
     if (!fullSrc) {
-      if (variant === 'pro' && !isLight) {
-        fullSrc = '/brand/flowloop-pro-dark.png';
-      } else {
+      if (variant === 'clean') {
         fullSrc = isLight ? '/brand/flowloop-logo.png' : '/brand/flowloop-logo-white.png';
+      } else {
+        fullSrc = isLight ? '/brand/flowloop-logo.png' : '/brand/flowloop-pro-dark.png';
       }
     }
 
@@ -64,8 +64,8 @@ export function BrandLogo({
         <Image
           src={fullSrc}
           alt="FlowLoop OS"
-          width={478}
-          height={91}
+          width={578}
+          height={110}
           className={cn('object-contain', fullSizeMap[size])}
           priority
         />
