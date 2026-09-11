@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { registerTenant } from '@/app/actions/onboarding';
 import { Droplets, Building2, User, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BrandLogo } from '@/components/layout/BrandLogo';
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
@@ -44,15 +45,8 @@ export default function SignupPage() {
       <div className="w-full max-w-md space-y-8 relative z-10">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 group mb-2">
-            {/* Logo container: structured for easy drop-in of custom logo asset */}
-            <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-blue to-water-cyan p-0.5 shadow-lg shadow-primary-blue/20 shrink-0">
-              <div className="absolute inset-0 bg-card rounded-xl m-[1px]" />
-              <Droplets className="w-6 h-6 text-cyan-400 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-            </div>
-            <span className="font-sans font-bold text-2xl tracking-tight text-white">
-              FlowLoop <span className="text-cyan-400">OS</span>
-            </span>
+          <Link href="/" className="inline-block group mb-2">
+            <BrandLogo size="lg" />
           </Link>
           <h2 className="text-3xl font-bold tracking-tight text-white">
             Start using FlowLoop OS

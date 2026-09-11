@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 
 interface BrandLogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   theme?: 'dark' | 'light';
   showText?: boolean;
   textClassName?: string;
-  variant?: 'icon' | 'full';
+  variant?: 'full' | 'icon' | 'pro';
   /**
    * Optional custom image path override.
    */
@@ -22,39 +22,50 @@ export function BrandLogo({
   theme = 'dark',
   showText = true,
   textClassName,
-  variant = 'icon',
+  variant = 'full',
   logoSrc,
 }: BrandLogoProps) {
   const iconSizeMap = {
     sm: 'w-7 h-7',
     md: 'w-10 h-10',
     lg: 'w-12 h-12',
+    xl: 'w-16 h-16',
   };
 
   const fullSizeMap = {
     sm: 'h-7 w-auto',
     md: 'h-9 w-auto',
     lg: 'h-12 w-auto',
+    xl: 'h-16 w-auto',
   };
 
   const textSizeMap = {
     sm: 'text-base',
     md: 'text-xl',
     lg: 'text-2xl',
+    xl: 'text-3xl',
   };
 
   const isLight = theme === 'light';
 
-  // If full lockup variant requested
-  if (variant === 'full') {
-    const fullSrc = logoSrc || (isLight ? '/brand/flowloop-logo.png' : '/brand/flowloop-logo-white.png');
+  // If full lockup variant requested (default)
+  if (variant === 'full' || variant === 'pro') {
+    let fullSrc = logoSrc;
+    if (!fullSrc) {
+      if (variant === 'pro' && !isLight) {
+        fullSrc = '/brand/flowloop-pro-dark.png';
+      } else {
+        fullSrc = isLight ? '/brand/flowloop-logo.png' : '/brand/flowloop-logo-white.png';
+      }
+    }
+
     return (
-      <div className={cn('relative inline-flex items-center select-none', className)}>
+      <div className={cn('relative inline-flex items-center select-none shrink-0', className)}>
         <Image
           src={fullSrc}
           alt="FlowLoop OS"
-          width={280}
-          height={53}
+          width={478}
+          height={91}
           className={cn('object-contain', fullSizeMap[size])}
           priority
         />

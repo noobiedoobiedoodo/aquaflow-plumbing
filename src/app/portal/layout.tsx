@@ -3,6 +3,7 @@ import { getCustomerSession } from '@/lib/auth/customer-session';
 import Link from 'next/link';
 import { Home, Calendar, FileText, CreditCard, LogOut, Wrench, HelpCircle, User } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { BrandLogo } from '@/components/layout/BrandLogo';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,7 @@ export default async function PortalLayout({
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden bg-white border-b border-neutral-200 p-4 flex items-center justify-between">
-        <span className="font-bold text-neutral-900 text-lg tracking-tight">FlowLoop <span className="text-cyan-600">OS</span> Portal</span>
+        <BrandLogo size="sm" theme="light" />
         <form action="/api/auth/logout" method="POST">
           <button type="submit" className="p-2 text-neutral-500 hover:text-neutral-900 rounded-md">
             <LogOut className="h-5 w-5" />
@@ -52,8 +53,8 @@ export default async function PortalLayout({
       {/* Sidebar */}
       <div className="hidden md:flex w-64 bg-white border-r border-neutral-200 flex-col">
         <div className="p-6 border-b border-neutral-200">
-          <div className="font-bold text-neutral-900 text-xl tracking-tight">FlowLoop <span className="text-cyan-600">OS</span></div>
-          <div className="text-sm text-neutral-500 mt-1">Customer Portal</div>
+          <BrandLogo size="sm" theme="light" />
+          <div className="text-xs text-neutral-400 mt-1 font-medium">Customer Portal</div>
         </div>
         
         <nav className="flex-1 p-4 space-y-1">

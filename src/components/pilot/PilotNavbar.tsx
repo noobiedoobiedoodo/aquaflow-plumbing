@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Droplets, ArrowRight, Menu, X, Sparkles } from 'lucide-react';
+import { ArrowRight, Menu, X, Sparkles } from 'lucide-react';
+import { BrandLogo } from '@/components/layout/BrandLogo';
 
 export function PilotNavbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -26,25 +27,12 @@ export function PilotNavbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/pilot" className="flex items-center gap-2.5 group">
-          {/* Logo container: structured for easy drop-in of custom logo asset */}
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-cyan-400 p-[1px] shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:shadow-[0_0_25px_rgba(0,229,255,0.7)] transition-all shrink-0">
-            <div className="w-full h-full bg-[#05080B] rounded-[11px] flex items-center justify-center">
-              <Droplets className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight text-white font-sans">
-                FlowLoop <span className="text-cyan-400">OS</span>
-              </span>
-              <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
-                Founding Pilot
-              </span>
-            </div>
-            <span className="text-[11px] text-slate-400 hidden sm:block">Trade Operations Platform</span>
-          </div>
+        <Link href="/pilot" className="flex items-center gap-3 group">
+          <BrandLogo size="md" />
+          <span className="hidden sm:inline-flex px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full items-center gap-1">
+            <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+            Founding Pilot
+          </span>
         </Link>
 
         {/* Desktop Nav Links */}

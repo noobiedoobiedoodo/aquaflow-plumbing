@@ -1,14 +1,13 @@
 import Link from 'next/link';
+import { BrandLogo } from './BrandLogo';
 
 export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-secondary-bg pt-16 pb-8">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
         <div className="space-y-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-sans font-bold text-xl tracking-tight text-white">
-              FlowLoop <span className="text-cyan-400">OS</span>
-            </span>
+          <Link href="/" className="inline-block">
+            <BrandLogo size="md" />
           </Link>
           <p className="text-muted-text text-sm leading-relaxed max-w-xs">
             Premium plumbing solutions for residential and commercial properties. Advanced technology meets expert craftsmanship.

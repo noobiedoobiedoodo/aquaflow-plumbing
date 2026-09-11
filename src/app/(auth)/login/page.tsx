@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/layout/BrandLogo';
 
 function LoginForm() {
   const router = useRouter();
@@ -139,16 +140,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Link href="/" className="flex items-center gap-2 group">
-            {/* Logo container: structured for easy drop-in of custom logo asset */}
-            <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-              <div className="absolute inset-0 bg-primary-blue rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500 opacity-20"></div>
-              <div className="absolute inset-1 bg-gradient-to-tr from-primary-blue to-water-cyan rounded-md rotate-12"></div>
-              <div className="absolute w-2.5 h-2.5 bg-background rounded-full"></div>
-            </div>
-            <span className="font-bold text-2xl text-white tracking-tight">
-              FlowLoop <span className="text-cyan-400">OS</span>
-            </span>
+          <Link href="/" className="group">
+            <BrandLogo size="lg" />
           </Link>
         </div>
 

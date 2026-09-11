@@ -4,35 +4,29 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CalendarCheck, Users, HardHat, Settings, LogOut, History, Receipt, Mail, HelpCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BrandLogo } from '@/components/layout/BrandLogo';
 
 export function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
     { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Active Jobs', href: '/dashboard/jobs', icon: CalendarCheck },
-    { label: 'Technicians', href: '/dashboard/techs', icon: HardHat },
+    { label: 'Schedule & Dispatch', href: '/dashboard/jobs', icon: CalendarCheck },
+    { label: 'Invoices & Billing', href: '/dashboard/invoices', icon: Receipt },
+    { label: 'Cold Prospecting', href: '/pilot/admin', icon: Sparkles },
+    { label: 'Automated Outreach', href: '/dashboard/communications', icon: Mail },
     { label: 'Customers', href: '/dashboard/customers', icon: Users },
-    { label: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
-    { label: 'Optimizer', href: '/dashboard/optimize', icon: Sparkles },
-    { label: 'Communications', href: '/dashboard/communications', icon: Mail },
-    { label: 'Support Desk', href: '/dashboard/support', icon: HelpCircle },
+    { label: 'Technicians', href: '/dashboard/techs', icon: HardHat },
+    { label: 'Customer Support', href: '/dashboard/support', icon: HelpCircle },
+    { label: 'Settings', href: '/dashboard/settings', icon: Settings },
     { label: 'Audit Log', href: '/dashboard/audit', icon: History },
   ];
 
   return (
     <aside className="w-64 border-r border-border/50 glass shrink-0 flex flex-col h-full">
       <div className="p-6 border-b border-border/50">
-        <Link href="/" className="flex items-center gap-2 group">
-          {/* Logo container: structured for easy drop-in of custom logo asset */}
-          <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-            <div className="absolute inset-0 bg-primary-blue rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500 opacity-20"></div>
-            <div className="absolute inset-1 bg-gradient-to-tr from-primary-blue to-water-cyan rounded-md rotate-12"></div>
-            <div className="absolute w-2 h-2 bg-background rounded-full"></div>
-          </div>
-          <span className="font-bold text-xl text-white tracking-tight">
-            FlowLoop <span className="text-cyan-400">OS</span>
-          </span>
+        <Link href="/dashboard" className="flex items-center group">
+          <BrandLogo size="sm" />
         </Link>
       </div>
 
