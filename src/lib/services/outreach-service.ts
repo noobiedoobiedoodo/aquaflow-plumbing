@@ -16,14 +16,18 @@ export function generateColdEmailContent(payload: OutreachEmailPayload) {
   const firstName = recipientName.split(' ')[0] || recipientName || 'there';
   const primaryPain = painPoints[0] || 'dispatch phone tag and late invoice deposits';
 
-  const baseUrl =
+  let baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    'https://aquaflow-plumbing-theta.vercel.app';
+    'https://flowloop.com';
+
+  if (baseUrl.includes('aquaflow') || baseUrl.includes('localhost') || !baseUrl.startsWith('http')) {
+    baseUrl = 'https://flowloop.com';
+  }
 
   const pilotUrl = `${baseUrl}/pilot?utm_source=cold_outbound&company=${encodeURIComponent(companyName)}&utm_campaign=${state.toLowerCase()}_pilot`;
   const privacyUrl = `${baseUrl}/privacy`;
-  const domainDisplay = baseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const domainDisplay = 'flowloop.com';
 
   const subject = `Quick question regarding dispatch at ${companyName} (${city})`;
 
@@ -41,8 +45,8 @@ You can review the founding partner pilot cohort here:
 ${pilotUrl}
 
 Best regards,
-Stephan Sabeski
-Founding Team | FlowLoop OS
+FlowLoop OS Onboarding Team
+onboarding@flowloopos.com
 ${pilotUrl}
 
 ---
@@ -58,9 +62,9 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; margin: 0; padding: 24px 12px; color: #1e293b; }
     .wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
-    .top-bar { background: linear-gradient(135deg, #0A121A 0%, #0F172A 100%); padding: 24px 28px; border-bottom: 2px solid #0284c7; }
+    .top-bar { background: linear-gradient(135deg, #0A121A 0%, #0F172A 100%); padding: 20px 28px; border-bottom: 2px solid #0284c7; }
     .brand-title { font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; margin: 0; display: inline-flex; align-items: center; }
-    .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }
+    .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
     .content { padding: 28px; background: #ffffff; }
     .salutation { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
     p { font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 14px 0; }
@@ -80,13 +84,20 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
 </head>
 <body>
   <div class="wrapper">
-    <!-- BRAND TOP BAR -->
+    <!-- BRAND TOP BAR WITH LOGO -->
     <div class="top-bar">
-      <a href="${pilotUrl}" style="text-decoration: none;">
-        <h1 class="brand-title">FlowLoop <span style="color: #38bdf8;">OS</span></h1>
-      </a>
-      <br/>
-      <div class="badge">🚀 Founding Partner Cohort • ${city}, ${state}</div>
+      <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+        <tr>
+          <td style="vertical-align: middle;">
+            <a href="${pilotUrl}" style="text-decoration: none; display: inline-block;">
+              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+            </a>
+          </td>
+          <td align="right" style="vertical-align: middle;">
+            <span class="badge">🚀 Founding Partner Pilot • ${city}, ${state}</span>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- MAIN BODY CONTENT -->
@@ -138,7 +149,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
     <!-- COMPLIANT FOOTER -->
     <div class="footer">
       <div class="signoff">
-        <strong>Stephan Sabeski</strong> • Founding Team<br/>
+        <strong>FlowLoop OS Team</strong> • <a href="mailto:onboarding@flowloopos.com" style="color: #0284c7; text-decoration: none;">onboarding@flowloopos.com</a><br/>
         FlowLoop OS • <a href="${pilotUrl}" style="color: #0284c7; font-weight: bold; text-decoration: none;">${domainDisplay}/pilot</a>
       </div>
       FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB<br/>
@@ -179,7 +190,12 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
       technicianCount: prospect.technicianCount,
     });
 
-    const founderReplyTo = process.env.FOUNDER_ALERT_EMAIL || process.env.RESEND_FROM_EMAIL;
+    const founderReplyTo =
+      process.env.FOUNDER_ALERT_EMAIL &&
+      !process.env.FOUNDER_ALERT_EMAIL.includes('sabeski') &&
+      !process.env.FOUNDER_ALERT_EMAIL.includes('gmail.com')
+        ? process.env.FOUNDER_ALERT_EMAIL
+        : (process.env.RESEND_FROM_EMAIL || 'onboarding@flowloopos.com');
 
     let res = await resend.emails.send({
       from: fromEmail,
@@ -196,7 +212,7 @@ export async function sendProspectOutreachEmail(prospect: ColdProspect): Promise
     // If in Resend Sandbox mode (onboarding@resend.dev) without verified domain, route to owner test email
     if (res.error && res.error.message?.includes('You can only send testing emails to your own email address')) {
       const sandboxEmailMatch = res.error.message.match(/\(([^)]+)\)/);
-      const ownerEmail = sandboxEmailMatch ? sandboxEmailMatch[1] : (process.env.FOUNDER_ALERT_EMAIL || 'stephan.sabeski12@gmail.com');
+      const ownerEmail = sandboxEmailMatch ? sandboxEmailMatch[1] : (process.env.FOUNDER_ALERT_EMAIL || 'onboarding@flowloopos.com');
       
       console.log(`[Resend Sandbox] Forwarding test outreach to owner email (${ownerEmail}) for ${prospect.companyName}`);
       res = await resend.emails.send({

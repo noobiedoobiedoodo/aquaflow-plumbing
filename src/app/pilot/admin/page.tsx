@@ -1160,7 +1160,7 @@ export default function PilotAdminDashboard() {
 
                               <button
                                 onClick={() => {
-                                  const text = `Hi ${p.contactName},\n\nI noticed ${p.companyName} is running a strong plumbing team in ${p.city}.\n\nWe built FlowLoop OS specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&utm_campaign=${p.state.toLowerCase()}_pilot\n\nBest,\nFlowLoop OS Founding Team`;
+                                  const text = `Hi ${p.contactName},\n\nI noticed ${p.companyName} is running a strong plumbing team in ${p.city}.\n\nWe built FlowLoop OS specifically for independent contractors sick of paying $1,200/mo for ServiceTitan or playing dispatch phone tag.\n\nWe are selecting 3 founding partners for our $199/mo lifetime pilot cohort.\n\nCheck out the live preview & 60-sec application:\nhttps://flowloop.com/pilot?utm_source=cold_outbound&utm_campaign=${p.state.toLowerCase()}_pilot\n\nBest,\nFlowLoop OS Founding Team`;
                                   navigator.clipboard.writeText(text);
                                   handleUpdateProspect(p.id, { outreachStatus: 'EMAIL_SENT' });
                                   alert('Outreach email copied to clipboard & status marked as EMAIL_SENT!');
@@ -1332,7 +1332,7 @@ export default function PilotAdminDashboard() {
               <div className="flex items-center justify-between gap-3 pt-2">
                 <button
                   onClick={() => {
-                    const text = `FlowLoop OS Founding Pilot Onboarding:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n\n1️⃣ 3-Minute Account Activation Link:\n${provisionResult.activationLink || 'https://aquaflow-plumbing-theta.vercel.app/login'}\n(Note: Activation link expires in 3 minutes for security)\n\n2️⃣ 1-Click $199/mo Founding Pilot Subscription:\n${provisionResult.paymentLink || 'https://aquaflow-plumbing-theta.vercel.app/pricing'}\n\nDashboard Login: https://aquaflow-plumbing-theta.vercel.app/login`;
+                    const text = `FlowLoop OS Founding Pilot Onboarding:\nCompany: ${provisionResult.organization?.name}\nEmail: ${provisionResult.user?.email}\n\n1️⃣ 3-Minute Account Activation Link:\n${provisionResult.activationLink || 'https://flowloop.com/login'}\n(Note: Activation link expires in 3 minutes for security)\n\n2️⃣ 1-Click $199/mo Founding Pilot Subscription:\n${provisionResult.paymentLink || 'https://flowloop.com/pricing'}\n\nDashboard Login: https://flowloop.com/login`;
                     navigator.clipboard.writeText(text);
                     setCopiedKey(true);
                     setTimeout(() => setCopiedKey(false), 2500);
@@ -1602,7 +1602,7 @@ export default function PilotAdminDashboard() {
 
                       <div className="py-1 text-center">
                         <a
-                          href={`https://aquaflow-plumbing-theta.vercel.app/pilot?utm_source=cold_outbound&company=${encodeURIComponent(selectedProspect.companyName)}&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot`}
+                          href={`https://flowloop.com/pilot?utm_source=cold_outbound&company=${encodeURIComponent(selectedProspect.companyName)}&utm_campaign=${selectedProspect.state.toLowerCase()}_pilot`}
                           target="_blank"
                           className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-teal-600 text-white font-bold text-xs no-underline shadow-md hover:scale-[1.02] transition-transform"
                         >
@@ -1611,7 +1611,7 @@ export default function PilotAdminDashboard() {
                       </div>
 
                       <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-200">
-                        <strong>Sign-off:</strong> Stephan Sabeski • Founding Team • <a href={`https://flowloopos.com/pilot`} target="_blank" className="text-sky-600 font-mono">flowloopos.com/pilot</a>
+                        <strong>Sign-off:</strong> FlowLoop OS Team • <a href="mailto:onboarding@flowloopos.com" className="text-sky-600 font-mono">onboarding@flowloopos.com</a> • <a href={`https://flowloop.com/pilot`} target="_blank" className="text-sky-600 font-mono">flowloop.com/pilot</a>
                       </div>
                     </div>
                   </div>

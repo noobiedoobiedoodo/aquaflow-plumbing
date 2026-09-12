@@ -91,12 +91,14 @@ export async function POST(req: NextRequest) {
           const resend = new Resend(process.env.RESEND_API_KEY);
           const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Alerts <onboarding@flowloopos.com>';
 
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://flowloop.com';
+
           // Send private alert ONLY to founder
           await resend.emails.send({
             from: fromEmail,
             to: alertEmail,
             subject: `🚨 NEW PILOT APPLICATION: ${lead.companyName} (${lead.technicianCount})`,
-            text: `New Founding Pilot Application Received:\n\nCompany: ${lead.companyName}\nContact: ${lead.contactName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\nLocation: ${lead.city}, ${lead.province}\nTechnicians: ${lead.technicianCount}\nPain Points: ${lead.painPoints.join(', ')}\nSource: ${lead.utmSource || 'direct'}\nCampaign: ${lead.utmCampaign || 'direct'}\n\nLead ID: ${lead.id}\nManage in dashboard: https://aquaflow-plumbing-theta.vercel.app/admin`,
+            text: `New Founding Pilot Application Received:\n\nCompany: ${lead.companyName}\nContact: ${lead.contactName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\nLocation: ${lead.city}, ${lead.province}\nTechnicians: ${lead.technicianCount}\nPain Points: ${lead.painPoints.join(', ')}\nSource: ${lead.utmSource || 'direct'}\nCampaign: ${lead.utmCampaign || 'direct'}\n\nLead ID: ${lead.id}\nManage in dashboard: ${baseUrl}/admin`,
           });
         } catch (emailErr) {
           console.warn('Non-blocking founder notification email error:', emailErr);

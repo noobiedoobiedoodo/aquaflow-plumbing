@@ -45,13 +45,16 @@ export async function getServerBaseUrl(): Promise<string> {
     process.env.APP_URL;
 
   if (explicitUrl && isValidAbsoluteUrl(explicitUrl)) {
+    if (explicitUrl.includes('aquaflow')) {
+      return 'https://flowloop.com';
+    }
     const isLocal = explicitUrl.includes('localhost') || explicitUrl.includes('127.0.0.1');
     if (process.env.NODE_ENV !== 'production' || !isLocal) {
       return normalizeUrl(explicitUrl);
     }
   }
 
-  // 3. Vercel Canonical Production Domain (e.g. aquaflow-plumbing-theta.vercel.app)
+  // 3. Vercel Canonical Production Domain (e.g. flowloop.com)
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
   }
@@ -63,7 +66,7 @@ export async function getServerBaseUrl(): Promise<string> {
 
   // 5. Production Failsafe (Guaranteed no localhost in production)
   if (process.env.NODE_ENV === 'production') {
-    return 'https://aquaflow-plumbing-theta.vercel.app';
+    return 'https://flowloop.com';
   }
 
   return 'http://localhost:3000';
@@ -85,6 +88,9 @@ export function getBaseUrl(): string {
     process.env.APP_URL;
 
   if (explicitUrl && isValidAbsoluteUrl(explicitUrl)) {
+    if (explicitUrl.includes('aquaflow')) {
+      return 'https://flowloop.com';
+    }
     const isLocal = explicitUrl.includes('localhost') || explicitUrl.includes('127.0.0.1');
     if (process.env.NODE_ENV !== 'production' || !isLocal) {
       return normalizeUrl(explicitUrl);
@@ -103,7 +109,7 @@ export function getBaseUrl(): string {
 
   // 5. Production Failsafe
   if (process.env.NODE_ENV === 'production') {
-    return 'https://aquaflow-plumbing-theta.vercel.app';
+    return 'https://flowloop.com';
   }
 
   return 'http://localhost:3000';

@@ -59,6 +59,188 @@ const US_TIMEZONES: Record<string, string> = {
   BC: 'America/Vancouver',
 };
 
+const RAW_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.APP_URL ||
+  'https://flowloop.com';
+
+const BASE_URL =
+  RAW_URL.includes('aquaflow') || RAW_URL.includes('localhost') || !RAW_URL.startsWith('http')
+    ? 'https://flowloop.com'
+    : RAW_URL;
+
+function generateReactivationEmailHtml(params: {
+  firstName: string;
+  companyName: string;
+  activationLink: string;
+  paymentLink: string;
+  baseUrl: string;
+}) {
+  const { firstName, companyName, activationLink, paymentLink, baseUrl } = params;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; margin: 0; padding: 24px 12px; color: #1e293b; }
+    .wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    .top-bar { background: linear-gradient(135deg, #0A121A 0%, #0F172A 100%); padding: 20px 28px; border-bottom: 2px solid #0284c7; }
+    .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .content { padding: 28px; background: #ffffff; }
+    .salutation { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    p { font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 14px 0; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); color: #ffffff !important; text-decoration: none; padding: 13px 26px; border-radius: 10px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3); }
+    .btn-secondary { display: inline-block; background: #0f172a; color: #38bdf8 !important; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 1px solid #1e293b; }
+    .footer { background: #f8fafc; padding: 22px 28px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; line-height: 1.6; }
+    .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #92400e; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="top-bar">
+      <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+        <tr>
+          <td style="vertical-align: middle;">
+            <a href="${baseUrl}" style="text-decoration: none; display: inline-block;">
+              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+            </a>
+          </td>
+          <td align="right" style="vertical-align: middle;">
+            <span class="badge">🚀 Account Activation</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="content">
+      <div class="salutation">Hi ${firstName},</div>
+      <p>Your FlowLoop OS dedicated operating system is provisioned for <strong>${companyName}</strong>.</p>
+      
+      <div class="card">
+        <strong style="color: #0f172a; font-size: 15px;">1️⃣ Secure 3-Minute Activation Link:</strong>
+        <p style="margin: 8px 0 12px 0;">Click the button below to set your password and access your dashboard:</p>
+        <div style="text-align: center; margin: 14px 0;">
+          <a href="${activationLink}" class="btn">Activate Account Now →</a>
+        </div>
+        <div class="warning">
+          ⚠️ <strong>Security Notice:</strong> This activation link expires in 3 minutes.
+        </div>
+      </div>
+
+      <div class="card">
+        <strong style="color: #0f172a; font-size: 15px;">2️⃣ Founding Pilot Subscription ($199/mo):</strong>
+        <p style="margin: 8px 0 12px 0;">Locks in your lifetime $199/month rate with unlimited dispatch and zero per-technician fees:</p>
+        <div style="text-align: center; margin: 12px 0;">
+          <a href="${paymentLink}" class="btn-secondary">Lock In Lifetime $199/mo Rate →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <strong>FlowLoop OS Founding Team</strong> • <a href="${baseUrl}" style="color: #0284c7; text-decoration: none;">flowloop.com</a><br/>
+      FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function generateWelcomeEmailHtml(params: {
+  firstName: string;
+  companyName: string;
+  activationLink: string;
+  paymentLink: string;
+  baseUrl: string;
+}) {
+  const { firstName, companyName, activationLink, paymentLink, baseUrl } = params;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; margin: 0; padding: 24px 12px; color: #1e293b; }
+    .wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    .top-bar { background: linear-gradient(135deg, #0A121A 0%, #0F172A 100%); padding: 20px 28px; border-bottom: 2px solid #0284c7; }
+    .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .content { padding: 28px; background: #ffffff; }
+    .salutation { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    p { font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 14px 0; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+    .checklist { list-style: none; padding: 0; margin: 12px 0; }
+    .checklist li { font-size: 13px; color: #1e293b; padding: 5px 0; display: flex; align-items: center; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); }
+    .btn-secondary { display: inline-block; background: #0f172a; color: #38bdf8 !important; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 1px solid #1e293b; }
+    .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #92400e; margin-top: 10px; }
+    .footer { background: #f8fafc; padding: 22px 28px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="top-bar">
+      <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+        <tr>
+          <td style="vertical-align: middle;">
+            <a href="${baseUrl}" style="text-decoration: none; display: inline-block;">
+              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+            </a>
+          </td>
+          <td align="right" style="vertical-align: middle;">
+            <span class="badge">🚀 Founding Pilot Cohort</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="content">
+      <div class="salutation">Welcome to FlowLoop OS, ${firstName}!</div>
+      <p>Your commercial plumbing operating system has been provisioned for <strong>${companyName}</strong>.</p>
+      
+      <div class="card">
+        <strong style="color: #0f172a; font-size: 15px;">1️⃣ Step 1: Set Password & Access Dashboard</strong>
+        <p style="margin: 8px 0 12px 0;">Click the button below to set your permanent login password and enter your workspace:</p>
+        <div style="text-align: center; margin: 16px 0;">
+          <a href="${activationLink}" class="btn">Activate Your Account Now →</a>
+        </div>
+        <div class="warning">
+          ⚠️ <strong>Security Notice:</strong> For your protection, this activation link is valid for 3 minutes.
+        </div>
+      </div>
+
+      <div class="card">
+        <strong style="color: #0f172a; font-size: 15px;">2️⃣ Step 2: Lock In $199/mo Lifetime Pilot Rate</strong>
+        <p style="margin: 8px 0 12px 0;">Guarantee your $199/mo rate with unlimited technician dispatch and zero per-seat fees:</p>
+        <div style="text-align: center; margin: 12px 0;">
+          <a href="${paymentLink}" class="btn-secondary">Lock In Lifetime $199/mo Rate →</a>
+        </div>
+      </div>
+
+      <div class="card" style="background: #ffffff; border: 1px solid #cbd5e1;">
+        <strong style="color: #0f172a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ready in your workspace:</strong>
+        <ul class="checklist">
+          <li>✅ <strong>${companyName}</strong> Organization & Member Roles</li>
+          <li>✅ 6 Pre-Configured Plumbing Services (Heaters, Drains, Leaks, Jetting)</li>
+          <li>✅ Multi-Tech Dispatch & Scheduling Calendar</li>
+          <li>✅ Instant Mobile Invoicing & Stripe Payment Engine</li>
+        </ul>
+      </div>
+
+      <p style="font-size: 13px; color: #64748b;">
+        Need assistance or a 10-minute walkthrough? Simply reply directly to this email and our founding team will jump in.
+      </p>
+    </div>
+
+    <div class="footer">
+      <strong>The FlowLoop OS Team</strong> • <a href="${baseUrl}/pilot" style="color: #0284c7; text-decoration: none;">flowloop.com/pilot</a><br/>
+      FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 async function generatePilotPaymentLink(
   orgId: string,
   companyName: string,
@@ -94,15 +276,15 @@ async function generatePilotPaymentLink(
           companyName,
           pilotCohort: 'founding-2026',
         },
-        success_url: `https://aquaflow-plumbing-theta.vercel.app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `https://aquaflow-plumbing-theta.vercel.app/pilot?payment=canceled`,
+        success_url: `${BASE_URL}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${BASE_URL}/pilot?payment=canceled`,
       });
       if (session.url) return session.url;
     } catch (stripeErr) {
       console.warn('Stripe checkout session creation note:', stripeErr);
     }
   }
-  return `https://aquaflow-plumbing-theta.vercel.app/pricing?org=${orgId}&cohort=pilot199`;
+  return `${BASE_URL}/pricing?org=${orgId}&cohort=pilot199`;
 }
 
 export async function POST(
@@ -183,7 +365,7 @@ export async function POST(
         },
       });
 
-      const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${rawActivationToken}`;
+      const activationLink = `${BASE_URL}/auth/reset-password?token=${rawActivationToken}`;
       const paymentLink = await generatePilotPaymentLink(
         existingOrg.id,
         existingOrg.name,
@@ -202,7 +384,14 @@ export async function POST(
             from: fromEmail,
             to: lead.email,
             subject: `🎉 FlowLoop OS Founding Pilot Account & Activation (${lead.companyName})`,
-            text: `Hi ${existingUser.firstName || 'there'},\n\nYour FlowLoop OS dedicated operating system has been provisioned for ${lead.companyName}!\n\n1️⃣ 3-MINUTE ACCOUNT ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ Note: This activation link expires in 3 minutes for security.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nBest regards,\nThe FlowLoop OS Founding Team`,
+            text: `Hi ${existingUser.firstName || 'there'},\n\nYour FlowLoop OS dedicated operating system has been provisioned for ${lead.companyName}!\n\n1️⃣ 3-MINUTE ACCOUNT ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ Note: This activation link expires in 3 minutes for security.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nBest regards,\nThe FlowLoop OS Founding Team\n${BASE_URL}`,
+            html: generateReactivationEmailHtml({
+              firstName: existingUser.firstName || 'there',
+              companyName: lead.companyName,
+              activationLink,
+              paymentLink,
+              baseUrl: BASE_URL,
+            }),
           });
           if (!emailRes.error) emailSent = true;
           else emailError = emailRes.error.message;
@@ -233,7 +422,7 @@ export async function POST(
           firstName: existingUser.firstName,
           lastName: existingUser.lastName,
         },
-        loginUrl: 'https://aquaflow-plumbing-theta.vercel.app/login',
+        loginUrl: `${BASE_URL}/login`,
       });
     }
 
@@ -439,7 +628,7 @@ export async function POST(
       return { org, user, rawActivationToken, tokenExpiresAt };
     });
 
-    const activationLink = `https://aquaflow-plumbing-theta.vercel.app/auth/reset-password?token=${provisionResult.rawActivationToken}`;
+    const activationLink = `${BASE_URL}/auth/reset-password?token=${provisionResult.rawActivationToken}`;
     const paymentLink = await generatePilotPaymentLink(
       provisionResult.org.id,
       provisionResult.org.name,
@@ -468,7 +657,14 @@ export async function POST(
           from: fromEmail,
           to: lead.email,
           subject: `🎉 Welcome to FlowLoop OS Founding Pilot — Activate & Lock In $199/mo (${lead.companyName})`,
-          text: `Hi ${firstName},\n\nWelcome to the FlowLoop OS Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n1️⃣ 3-MINUTE ONE-TIME ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nWHAT IS READY IN YOUR WORKSPACE:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance or a 10-minute setup walkthrough, reply directly to this email.\n\nBest regards,\nThe FlowLoop OS Team\nhttps://aquaflow-plumbing-theta.vercel.app/pilot`,
+          text: `Hi ${firstName},\n\nWelcome to the FlowLoop OS Founding Pilot cohort ($199/mo) for ${lead.companyName}!\n\nYour commercial plumbing operating system has been provisioned.\n\n1️⃣ 3-MINUTE ONE-TIME ACTIVATION LINK:\n🔗 ${activationLink}\n⚠️ IMPORTANT: For your security, this activation link is valid for 3 minutes.\nClick the link above to set your permanent password and access your dashboard.\n\n2️⃣ 1-CLICK $199/MO FOUNDING PILOT PAYMENT LINK:\n💳 ${paymentLink}\n(Locks in your lifetime $199/mo rate with unlimited dispatch)\n\nWHAT IS READY IN YOUR WORKSPACE:\n✅ ${lead.companyName} Organization Profile\n✅ 6 Pre-Configured Plumbing Services (Water Heaters, Drains, Leaks, Jetting)\n✅ Dispatch & Technician Scheduling Calendar\n✅ Instant Invoicing & Stripe Payment Engine\n\nIf you need any assistance or a 10-minute setup walkthrough, reply directly to this email.\n\nBest regards,\nThe FlowLoop OS Team\n${BASE_URL}/pilot`,
+          html: generateWelcomeEmailHtml({
+            firstName,
+            companyName: lead.companyName,
+            activationLink,
+            paymentLink,
+            baseUrl: BASE_URL,
+          }),
         });
 
         if (emailRes.error) {
@@ -508,7 +704,7 @@ export async function POST(
         lastName,
         tempPassword,
       },
-      loginUrl: 'https://aquaflow-plumbing-theta.vercel.app/login',
+      loginUrl: `${BASE_URL}/login`,
     });
   } catch (error) {
     console.error('Failed to auto-provision company:', error);
