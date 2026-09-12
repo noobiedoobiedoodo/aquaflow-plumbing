@@ -620,7 +620,7 @@ model Estimate {
   updatedAt      DateTime  @updatedAt
 
   organization Organization   @relation(fields: [organizationId], references: [id])
-  job          Job            @relation(fields: [jobId], references: [id])
+  job          Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
   customer     Customer       @relation(fields: [customerId], references: [id])
   lines        EstimateLine[]
   approvals    EstimateApproval[]
@@ -1193,7 +1193,7 @@ model Task {
   updatedAt      DateTime  @updatedAt
 
   organization   Organization @relation(fields: [organizationId], references: [id])
-  job            Job?         @relation(fields: [relatedJobId], references: [id])
+  job            Job?         @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
   customer       Customer?    @relation(fields: [relatedCustId], references: [id])
   assignedTo     User?        @relation(fields: [assignedToId], references: [id])
 
@@ -1214,7 +1214,7 @@ model SupportTicket {
 
   organization   Organization @relation(fields: [organizationId], references: [id])
   customer       Customer     @relation(fields: [customerId], references: [id])
-  job            Job?         @relation(fields: [relatedJobId], references: [id])
+  job            Job?         @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
   invoice        Invoice?     @relation(fields: [relatedInvId], references: [id])
   messages       SupportTicketMessage[]
 

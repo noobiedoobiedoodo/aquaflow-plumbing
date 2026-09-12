@@ -104,21 +104,25 @@ describe('Phase 13: Runtime Crash & Model Conformance Verification Suite', () =>
       },
     });
     proposalId = proposal.id;
-  });
+  }, 30000);
 
   afterAll(async () => {
-    await prisma.jobActivity.deleteMany({ where: { jobId } });
-    await prisma.optimizationProposal.deleteMany({ where: { organizationId: orgId } });
-    await prisma.job.deleteMany({ where: { id: jobId } });
-    await prisma.appointment.deleteMany({ where: { id: appointmentId } });
-    await prisma.property.deleteMany({ where: { id: propertyId } });
-    await prisma.customer.deleteMany({ where: { id: customerId } });
-    await prisma.service.deleteMany({ where: { id: serviceId } });
-    await prisma.technician.deleteMany({ where: { organizationId: orgId } });
-    await prisma.organizationMember.deleteMany({ where: { organizationId: orgId } });
+    if (jobId) {
+      await prisma.jobActivity.deleteMany({ where: { jobId } });
+      await prisma.job.deleteMany({ where: { id: jobId } });
+    }
+    if (orgId) {
+      await prisma.optimizationProposal.deleteMany({ where: { organizationId: orgId } });
+      await prisma.appointment.deleteMany({ where: { organizationId: orgId } });
+      await prisma.property.deleteMany({ where: { organizationId: orgId } });
+      await prisma.customer.deleteMany({ where: { organizationId: orgId } });
+      await prisma.service.deleteMany({ where: { organizationId: orgId } });
+      await prisma.technician.deleteMany({ where: { organizationId: orgId } });
+      await prisma.organizationMember.deleteMany({ where: { organizationId: orgId } });
+      await prisma.organization.deleteMany({ where: { id: orgId } });
+    }
     await prisma.user.deleteMany({ where: { email: { in: [`admin-${testId}@test.com`, `tech1-${testId}@test.com`, `tech2-${testId}@test.com`, `cust-${testId}@test.com`] } } });
-    await prisma.organization.deleteMany({ where: { id: orgId } });
-  });
+  }, 30000);
 
   test('Runtime Safety: Safe fallback for service name on Job Appointment', async () => {
     const jobWithService = await prisma.job.findUnique({
