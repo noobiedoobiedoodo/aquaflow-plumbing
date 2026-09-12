@@ -19,15 +19,16 @@ export function generateColdEmailContent(payload: OutreachEmailPayload) {
   let baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    'https://flowloop.com';
+    'https://www.flowloopos.com';
 
-  if (baseUrl.includes('aquaflow') || baseUrl.includes('localhost') || !baseUrl.startsWith('http')) {
-    baseUrl = 'https://flowloop.com';
+  if (baseUrl.includes('aquaflow') || baseUrl.includes('flowloop.com') || baseUrl.includes('localhost') || !baseUrl.startsWith('http')) {
+    baseUrl = 'https://www.flowloopos.com';
   }
 
+  const logoUrl = 'https://www.flowloopos.com/brand/flowloop-logo-white.png';
   const pilotUrl = `${baseUrl}/pilot?utm_source=cold_outbound&company=${encodeURIComponent(companyName)}&utm_campaign=${state.toLowerCase()}_pilot`;
   const privacyUrl = `${baseUrl}/privacy`;
-  const domainDisplay = 'flowloop.com';
+  const domainDisplay = 'flowloopos.com';
 
   const subject = `Quick question regarding dispatch at ${companyName} (${city})`;
 
@@ -90,7 +91,7 @@ To opt out of pilot notifications, reply "Unsubscribe" or visit ${privacyUrl}`;
         <tr>
           <td style="vertical-align: middle;">
             <a href="${pilotUrl}" style="text-decoration: none; display: inline-block;">
-              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+              <img src="${logoUrl}" alt="FlowLoop OS" width="169" height="32" style="height: 32px; width: 169px; max-width: 169px; display: block; border: 0; outline: none; text-decoration: none;" />
             </a>
           </td>
           <td align="right" style="vertical-align: middle;">

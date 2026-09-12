@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
           const resend = new Resend(process.env.RESEND_API_KEY);
           const fromEmail = process.env.RESEND_FROM_EMAIL || 'FlowLoop OS Alerts <onboarding@flowloopos.com>';
 
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://flowloop.com';
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://www.flowloopos.com';
 
           // Send private alert ONLY to founder
           await resend.emails.send({

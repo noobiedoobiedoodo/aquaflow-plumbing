@@ -45,8 +45,8 @@ export async function getServerBaseUrl(): Promise<string> {
     process.env.APP_URL;
 
   if (explicitUrl && isValidAbsoluteUrl(explicitUrl)) {
-    if (explicitUrl.includes('aquaflow')) {
-      return 'https://flowloop.com';
+    if (explicitUrl.includes('aquaflow') || explicitUrl.includes('flowloop.com')) {
+      return 'https://www.flowloopos.com';
     }
     const isLocal = explicitUrl.includes('localhost') || explicitUrl.includes('127.0.0.1');
     if (process.env.NODE_ENV !== 'production' || !isLocal) {
@@ -54,9 +54,13 @@ export async function getServerBaseUrl(): Promise<string> {
     }
   }
 
-  // 3. Vercel Canonical Production Domain (e.g. flowloop.com)
+  // 3. Vercel Canonical Production Domain (e.g. www.flowloopos.com)
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProd.includes('aquaflow') || vercelProd.includes('flowloop.com')) {
+      return 'https://www.flowloopos.com';
+    }
+    return `https://${vercelProd}`;
   }
 
   // 4. Vercel Current Deployment URL (e.g. preview deployment)
@@ -66,7 +70,7 @@ export async function getServerBaseUrl(): Promise<string> {
 
   // 5. Production Failsafe (Guaranteed no localhost in production)
   if (process.env.NODE_ENV === 'production') {
-    return 'https://flowloop.com';
+    return 'https://www.flowloopos.com';
   }
 
   return 'http://localhost:3000';
@@ -88,8 +92,8 @@ export function getBaseUrl(): string {
     process.env.APP_URL;
 
   if (explicitUrl && isValidAbsoluteUrl(explicitUrl)) {
-    if (explicitUrl.includes('aquaflow')) {
-      return 'https://flowloop.com';
+    if (explicitUrl.includes('aquaflow') || explicitUrl.includes('flowloop.com')) {
+      return 'https://www.flowloopos.com';
     }
     const isLocal = explicitUrl.includes('localhost') || explicitUrl.includes('127.0.0.1');
     if (process.env.NODE_ENV !== 'production' || !isLocal) {
@@ -99,7 +103,11 @@ export function getBaseUrl(): string {
 
   // 3. Vercel Canonical Production Domain
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProd.includes('aquaflow') || vercelProd.includes('flowloop.com')) {
+      return 'https://www.flowloopos.com';
+    }
+    return `https://${vercelProd}`;
   }
 
   // 4. Vercel Current Deployment URL
@@ -109,7 +117,7 @@ export function getBaseUrl(): string {
 
   // 5. Production Failsafe
   if (process.env.NODE_ENV === 'production') {
-    return 'https://flowloop.com';
+    return 'https://www.flowloopos.com';
   }
 
   return 'http://localhost:3000';

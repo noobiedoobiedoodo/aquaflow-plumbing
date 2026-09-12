@@ -62,12 +62,14 @@ const US_TIMEZONES: Record<string, string> = {
 const RAW_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.APP_URL ||
-  'https://flowloop.com';
+  'https://www.flowloopos.com';
 
 const BASE_URL =
-  RAW_URL.includes('aquaflow') || RAW_URL.includes('localhost') || !RAW_URL.startsWith('http')
-    ? 'https://flowloop.com'
+  RAW_URL.includes('aquaflow') || RAW_URL.includes('flowloop.com') || RAW_URL.includes('localhost') || !RAW_URL.startsWith('http')
+    ? 'https://www.flowloopos.com'
     : RAW_URL;
+
+const EMAIL_LOGO_URL = 'https://www.flowloopos.com/brand/flowloop-logo-white.png';
 
 function generateReactivationEmailHtml(params: {
   firstName: string;
@@ -104,7 +106,7 @@ function generateReactivationEmailHtml(params: {
         <tr>
           <td style="vertical-align: middle;">
             <a href="${baseUrl}" style="text-decoration: none; display: inline-block;">
-              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+              <img src="${EMAIL_LOGO_URL}" alt="FlowLoop OS" width="169" height="32" style="height: 32px; width: 169px; max-width: 169px; display: block; border: 0; outline: none; text-decoration: none;" />
             </a>
           </td>
           <td align="right" style="vertical-align: middle;">
@@ -139,7 +141,7 @@ function generateReactivationEmailHtml(params: {
     </div>
 
     <div class="footer">
-      <strong>FlowLoop OS Founding Team</strong> • <a href="${baseUrl}" style="color: #0284c7; text-decoration: none;">flowloop.com</a><br/>
+      <strong>FlowLoop OS Founding Team</strong> • <a href="${baseUrl}" style="color: #0284c7; text-decoration: none;">flowloopos.com</a><br/>
       FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB
     </div>
   </div>
@@ -184,7 +186,7 @@ function generateWelcomeEmailHtml(params: {
         <tr>
           <td style="vertical-align: middle;">
             <a href="${baseUrl}" style="text-decoration: none; display: inline-block;">
-              <img src="${baseUrl}/brand/flowloop-logo-white.png" alt="FlowLoop OS" style="height: 32px; width: auto; max-width: 180px; display: block; border: 0;" />
+              <img src="${EMAIL_LOGO_URL}" alt="FlowLoop OS" width="169" height="32" style="height: 32px; width: 169px; max-width: 169px; display: block; border: 0; outline: none; text-decoration: none;" />
             </a>
           </td>
           <td align="right" style="vertical-align: middle;">
@@ -233,7 +235,7 @@ function generateWelcomeEmailHtml(params: {
     </div>
 
     <div class="footer">
-      <strong>The FlowLoop OS Team</strong> • <a href="${baseUrl}/pilot" style="color: #0284c7; text-decoration: none;">flowloop.com/pilot</a><br/>
+      <strong>The FlowLoop OS Team</strong> • <a href="${baseUrl}/pilot" style="color: #0284c7; text-decoration: none;">flowloopos.com/pilot</a><br/>
       FlowLoop Systems Inc. • 100 Innovation Way, Dallas TX / Winnipeg MB
     </div>
   </div>
